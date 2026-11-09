@@ -1,0 +1,10 @@
+# 줄바꿈은 저장소에 LF 로 둔다. 체크아웃할 때 OS 에 맞춰 바뀌지 않게 한다
+* text=auto eol=lf
+
+# 건드리면 안 되는 것
+*.woff2 binary
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.webp  binary
