@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#fcfcfb"/>
+  <rect width="1200" height="10" fill="#1d47a5"/>
+  <text x="92" y="318" font-family="Pretendard, 'Malgun Gothic', -apple-system, sans-serif"
+        font-size="78" font-weight="700" fill="#18242b" letter-spacing="-2.5">keencho's blog</text>
+  <text x="92" y="382" font-family="Pretendard, 'Malgun Gothic', -apple-system, sans-serif"
+        font-size="31" fill="#5e6e78">이것저것 정리하는 블로그.</text>
+  <rect x="92" y="436" width="70" height="4" fill="#1d47a5"/>
+</svg>

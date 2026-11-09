@@ -1,0 +1,59 @@
+---
+title: OSIV(Open-Session-In-View)
+author: keencho
+date: 2021-12-04 17:12:00 +0900
+categories: [JPA]
+tags: [Spring, JPA]
+---
+
+OSIV(Open-Session-In-View)는 영속성 컨텍스트를 뷰 영역까지 열어두는 기능입니다. 여기서 뷰 영역은 Controller 혹은 템플릿 렌더링 영역까지를 의미합니다.
+
+뷰 영역까지 영속성 컨텍스트가 살아있다면 뷰 영역에서도 지연 로딩 (Lazy Loading) 을 사용할 수 있습니다. 별다른 설정 없이도 지금까지 뷰 영역에서 지연 로딩을 사용하고 계시는 분들도 계실텐데요. 이유는 Spring Boot 2.0 부터는 해당 옵션이 기본적으로 사용되도록 설정되어 있기 때문입니다.
+
+```
+WARN 6052 --- [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+```
+아무 설정도 하지 않고 어플리케이션을 실행시키면 위와 같은 경고 메시지를 볼 수 있는데요, 이는 OSIV가 기본적으로 사용되도록 설정되어 있다는 것을 의미합니다.
+
+### **OSIV Flow Diagram**
+OSIV가 사용되도록 설정되어 있으며 `Post` 라는 엔티티가 있다고 가정해 보겠습니다. 아래는 `Post`엔티티를 가져오기 위한 처리 과정과 이를 도식화한 다이어그램 입니다.
+
+![flow-diagram](./flow-diagram.png)
+
+1. `OpenSessionInViewFilter`는 `SessionFactory`의 `openSession`메소드를 호출하여 새 세션을 시작합니다.
+2. `Session`은 `TransactionSynchronizationManager`에 바인딩 됩니다.
+3. `OpenSessionInViewFilter`는 `javax.servlet.FilterChain`의 `doFilter`를 호출하고 요청이 추가됩니다.
+4. `DispatcherServlet`에 의해 요청은 `Controller`로 전달됩니다.
+5. `Controller`는 `Post` 엔티티를 가져오기 위해 `Service`의 `getPosts()` 메소드를 호출합니다.
+6. `Service`는 새로운 트랜잭션을 열고, `HibernateTransactionManager`는 `OpenSessionInViewFilter`에 의해 시작된 `Session` 객체를 재사용합니다.
+7. `Repository`에서는 지연 로딩 없이 `Post` 엔티티를 가져옵니다.
+8. `Service`는 트랜잭션을 커밋하지만, `Session` 객체는 외부에서 초기화되었기 때문에 닫히지 않습니다.
+9. `DispatcherServlet`에 의해 뷰 UI가 렌더링되기 시작하면 지연 로딩될 객체를 탐색하고 초기화합니다.
+10. 뷰 렌더링까지 모두 끝났습니다. 이제 `OpenSessionViewFilter`는 `Session`을 닫을 수 있고, 데이터베이스 커넥션 또한 반환됩니다.  
+
+실제로 OSIV가 설정되어 있으면 위와 같은 흐름으로 뷰 영역까지 영속성 컨텍스트가 살아있게 됩니다.  
+
+### **장점**  
+- 뷰 영역까지 영속성 컨텍스트가 유지됩니다. (DB 커넥션이 유지됨을 의미하기도 합니다.)  
+- 지연 로딩(Lazy Loading)을 적극적으로 활용할 수 있습니다.  
+
+### **단점**  
+언뜻 보기에는 좋은 기능이라고 생각될수도 있겠지만, 데이터베이스 관점에서 보면 절대 좋은 기능이라고 할 수는 없습니다.  
+
+서비스 레이어에서 트랜잭션을 열고 닫지만 이후에(뷰 렌더링시)는 트랜잭션이 열려있지 않은 상태입니다. 따라서 뷰 영역에서 생성된 모든 쿼리문은 auto-commit 모드로 실행됩니다. 
+이는 N개의 쿼리문은 N번 디스크로 트랜잭션 로그을 플러쉬 해야함을 의미합니다. 그러므로 데이터베이스의 입장에서는 많은 I/O 트래픽을 발생시키게 됩니다.  
+
+또한 데이터베이스 연결은 뷰 영역까지 유지되므로 데이터베이스 커넥션 풀의 한계까지 도달하면 어플리케이션 전체 트랜잭션 처리가 제한됩니다. 연결이 많이, 길게 유지된다는 것은 
+다음 요청이 받아 먹어야 할 커넥션 풀의 수가 줄어든다는 것은 요청 - 응답까지의 시간이 지연됨을 의미하므로 트래픽으로 많아질수록 성능이 하락합니다.  
+
+### **결론**  
+개인적으로 장점보다 단점이 더 크게 다가오는 기능인것 같습니다. 저도 몰랐을때는 아무것도 건드리지 않고 그냥 사용했었지만 OSIV 를 알고난 후에는 꼭 옵션을 끄고 개발하는 편입니다.  
+
+물론 트래픽이 많지 않을것이라 예상되는곳 (사내 어플리케이션, 관리자 등..) 에는 그냥 켜고 사용합니다.  
+
+미자막으로 spring boot 2.0 부터는 해당 옵션이 기본으로 설정되어 있습니다. 해당 옵션을 끄시려면 설정 파일에 다음과 같이 설정하시면 됩니다.  
+```properties
+spring.jpa.open-in-view=false
+```
+
+

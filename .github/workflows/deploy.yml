@@ -1,0 +1,62 @@
+name: 배포
+
+on:
+  push:
+    branches: [main]
+  # 글 저장소를 분리하면 거기서 이 워크플로를 부른다
+  repository_dispatch:
+    types: [content-updated]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # 글 저장소를 분리하면 이 단계를 켠다
+      # - uses: actions/checkout@v4
+      #   with:
+      #     repository: keencho/blog-content
+      #     path: content
+      #     token: ${{ secrets.CONTENT_REPO_TOKEN }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      # 다이어그램 SVG 는 저장소에 들어 있다.
+      # 빠진 게 있을 때만 Chromium 을 받는다
+      - name: 다이어그램 확인
+        id: diagrams
+        run: |
+          if node scripts/diagrams.mjs --check 2>/dev/null; then
+            echo "need_browser=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "need_browser=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Chromium 설치 (필요할 때만)
+        if: steps.diagrams.outputs.need_browser == 'true'
+        run: npx playwright install --with-deps chromium
+
+      - name: 다이어그램 굽기
+        if: steps.diagrams.outputs.need_browser == 'true'
+        run: npm run diagrams
+
+      - run: npx astro build
+      - run: npx pagefind --site dist
+
+      - name: Cloudflare Pages 로 올리기
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist --project-name=blog-keencho --branch=${{ github.ref_name }}

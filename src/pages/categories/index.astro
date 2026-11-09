@@ -1,0 +1,81 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getPosts } from '../../lib/posts';
+import { slugify } from '../../lib/slug';
+
+const posts = await getPosts();
+
+const count = new Map<string, number>();
+for (const p of posts) for (const c of p.data.categories) count.set(c, (count.get(c) ?? 0) + 1);
+const cats = [...count].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'ko'));
+
+const tagCount = new Map<string, number>();
+for (const p of posts) for (const t of p.data.tags) tagCount.set(t, (tagCount.get(t) ?? 0) + 1);
+const tags = [...tagCount].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'ko'));
+---
+<Base title="분류">
+  <h1>분류</h1>
+
+  <ul class="rows">
+    {cats.map(([name, n]) => (
+      <li>
+        <a href={`/categories/${slugify(name)}/`}>{name}</a>
+        <span class="n">{n}</span>
+      </li>
+    ))}
+  </ul>
+
+  <h2>태그</h2>
+  <p class="tags">
+    {tags.map(([name, n]) => (
+      <a href={`/tags/${slugify(name)}/`}>{name}<span class="n">{n}</span></a>
+    ))}
+  </p>
+</Base>
+
+<style>
+  h1 { font-size: 1.5rem; margin: 0 0 1.8rem; letter-spacing: -0.02em; }
+  h2 { font-size: 1rem; margin: 3rem 0 1rem; letter-spacing: -0.015em; }
+
+  /* 한 줄에 하나씩 쌓으면 오른쪽이 텅 빈다. 폭에 따라 열을 늘린다 */
+  .rows {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    columns: 3;
+    column-gap: 2rem;
+  }
+  @media (max-width: 38rem) { .rows { columns: 2; } }
+  @media (max-width: 24rem) { .rows { columns: 1; } }
+
+  .rows li {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    line-height: 2.05rem;
+    break-inside: avoid;
+  }
+  .rows a {
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .rows a:hover { border-bottom-color: var(--accent); }
+
+  .tags { display: flex; flex-wrap: wrap; gap: 0.5rem 1.1rem; margin: 0; }
+  .tags a {
+    text-decoration: none;
+    font-size: 0.94rem;
+    border-bottom: 1px solid var(--rule);
+  }
+  .tags a:hover { border-bottom-color: var(--accent); }
+
+  .n {
+    font-size: 0.78rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-faint);
+    margin-left: 0.3em;
+  }
+</style>

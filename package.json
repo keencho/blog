@@ -1,0 +1,31 @@
+{
+  "name": "blog-keencho",
+  "type": "module",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "node scripts/diagrams.mjs && astro dev",
+    "build": "node scripts/diagrams.mjs && astro build && pagefind --site dist",
+    "preview": "astro preview",
+    "check": "astro check",
+    "diagrams": "node scripts/diagrams.mjs",
+    "og": "node scripts/og-image.mjs"
+  },
+  "dependencies": {
+    "@astrojs/markdown-remark": "^7.3.6",
+    "@astrojs/mdx": "^8.1.3",
+    "@astrojs/rss": "^4.0.19",
+    "@astrojs/sitemap": "^3.7.4",
+    "astro": "^7.4.7",
+    "pretendard": "^1.3.9"
+  },
+  "devDependencies": {
+    "@fontsource/ibm-plex-mono": "^5.3.0",
+    "hast-util-from-html": "^2.1.0",
+    "mermaid": "^12.3.0",
+    "pagefind": "^1.6.0",
+    "playwright": "^1.65.0",
+    "rehype-mermaid": "^3.0.0",
+    "unist-util-visit": "^5.2.0"
+  }
+}

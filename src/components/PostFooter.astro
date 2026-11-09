@@ -1,0 +1,155 @@
+---
+import type { Post, Series } from '../lib/posts';
+import { year as kstYear, monthDay, iso } from '../lib/date';
+
+interface Props {
+  series: Series | null;
+  related: Post[];
+  current: string;
+}
+const { series, related, current } = Astro.props;
+
+const prev = series ? series.items[series.index - 1] : null;
+const next = series ? series.items[series.index + 1] : null;
+---
+{series && (
+  <nav class="series" aria-label="이 시리즈">
+    <p class="cap">
+      이 글은 <b>{series.items.length}편 중 {series.index + 1}편</b>입니다
+    </p>
+
+    <ol>
+      {series.items.map(({ no, post }) => (
+        <li aria-current={post.id === current ? 'true' : undefined}>
+          <span class="no">{no}</span>
+          {post.id === current ? (
+            <span class="here">{post.data.title}</span>
+          ) : (
+            <a href={`/posts/${post.id}/`}>{post.data.title}</a>
+          )}
+        </li>
+      ))}
+    </ol>
+
+    {(prev || next) && (
+      <div class="jump">
+        {prev ? (
+          <a href={`/posts/${prev.post.id}/`}>← {prev.no}편</a>
+        ) : <span />}
+        {next && <a href={`/posts/${next.post.id}/`}>{next.no}편 →</a>}
+      </div>
+    )}
+  </nav>
+)}
+
+{related.length > 0 && (
+  <nav class="related" aria-label="비슷한 글">
+    <p class="cap">비슷한 글</p>
+    <ul>
+      {related.map((post) => (
+        <li>
+          <time datetime={iso(post.data.date)}>
+            {kstYear(post.data.date)}.{monthDay(post.data.date)}
+          </time>
+          <a href={`/posts/${post.id}/`}>{post.data.title}</a>
+        </li>
+      ))}
+    </ul>
+  </nav>
+)}
+
+<style>
+  .cap {
+    margin: 0 0 0.9rem;
+    font-size: 0.82rem;
+    color: var(--ink-dim);
+  }
+  .cap b { color: var(--ink); font-weight: 600; }
+
+  /* ── 시리즈 — 전체 목차를 보여주고 지금 위치를 표시한다 ── */
+  .series {
+    margin-top: 3.4rem;
+    padding: 1.2rem 1.3rem;
+    border: 1px solid var(--rule);
+    border-radius: 7px;
+    background: var(--bg-sunk);
+  }
+
+  .series ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    font-size: 0.93rem;
+  }
+  .series li {
+    display: flex;
+    gap: 0.7rem;
+    align-items: baseline;
+    line-height: 1.95;
+    word-break: keep-all;
+  }
+  .no {
+    flex: none;
+    width: 1.2em;
+    text-align: right;
+    font-size: 0.8rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-faint);
+  }
+  .series a {
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+  }
+  .series a:hover { border-bottom-color: var(--accent); }
+
+  .here {
+    font-weight: 600;
+    color: var(--accent);
+  }
+  .series li[aria-current] .no { color: var(--accent); }
+
+  .jump {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 1.1rem;
+    padding-top: 0.9rem;
+    border-top: 1px solid var(--rule);
+    font-size: 0.86rem;
+  }
+  .jump a {
+    color: var(--ink-dim);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+  }
+  .jump a:hover { color: var(--ink); border-bottom-color: var(--accent); }
+
+  /* ── 비슷한 글 ───────────────────────────────── */
+  .related {
+    margin-top: 3.4rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--rule);
+  }
+  .related ul { list-style: none; margin: 0; padding: 0; }
+  .related li {
+    display: flex;
+    gap: 0.9rem;
+    align-items: baseline;
+    line-height: 2.05rem;
+  }
+  .related time {
+    flex: none;
+    font-size: 0.8rem;
+    color: var(--ink-faint);
+    font-variant-numeric: tabular-nums;
+  }
+  .related a {
+    text-decoration: none;
+    word-break: keep-all;
+    letter-spacing: -0.012em;
+    border-bottom: 1px solid transparent;
+  }
+  .related a:hover { border-bottom-color: var(--accent); }
+
+  .series + .related { margin-top: 2.6rem; }
+</style>

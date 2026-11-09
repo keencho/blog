@@ -1,0 +1,44 @@
+---
+title: AWS를 사용해 무중단 배포 자동화 환경 구축하기 - 1. 개요
+author: keencho
+date: 2021-06-21 19:32:00 +0900
+categories: [AWS]
+tags: [AWS, DevOps]
+---
+
+1. **개요**
+2. [VPC와 기본 리소스](/posts/aws-cicd-2)
+3. [VPC와 기본 리소스 생성하기](/posts/aws-cicd-3)
+4. [어플리케이션 구축 및 로드밸런서 적용](/posts/aws-cicd-4)
+5. [AWS 리소스 세팅](/posts/aws-cicd-5)
+6. [CodeDeploy 연동 / 마무리](/posts/aws-cicd-6)
+
+# **개요**
+AWS를 이용하여 가장 기본적인 형태의 인프라를 구축하고 `GithubAction - CodeDeploy` 를 이용하여 CI/CD 서버를 구축해보도록 하겠습니다.
+
+- AWS의 기본적인 개념은 숙지하고 있다는 가정하에 진행됩니다.
+- 블루 - 그린 배포 방식을 사용합니다.
+
+## **서버 구성**
+최종적으로 구축할 웹서버 아키텍처는 다음과 같습니다. ~~(**직접 그린거라 삐뚤삐뚤합니다 ㅠㅠ...**)~~
+
+![final-architecture](./final-architecture.PNG)
+
+- 중간 `Private Subnet` 영역의 `Auto Scailing group` 에 포함되지 않은 인스턴스는 많은 트래픽을 필요로 하지 않는 어플리케이션 입니다. (ex. 단순 조회용 사이트)
+- `Auto Scailing group` 에 포함된 인스턴스는 많은 트래픽이 발생합니다. (ex. 대고객 사이트, 외부 연동 api 서버)
+- `Auto Scailing group` 내부 인스턴스의 내부 구조는 웹서버로 `Nginx` 를 두고 location 설정을 바탕으로 `Spring-Boot Applicaton` 에 접근합니다. (ex. /api - api 서버로)
+
+## **배포 구성**
+자동화 배포에 사용할 배포 구조는 다음과 같습니다.
+
+![deploy](./deploy.PNG)
+
+1. Github 에 코드를 commit & push 합니다.
+2. 미리 정의해둔 GithubAction Workflow에 의해 job이 실행됩니다.
+3. GithubAction은 어플리케이션을 빌드하고 S3 Bucket에 전송합니다.
+4. GithubAction은 CodeDeploy 에게 배포 명령을 내립니다.
+5. CodeDeploy는 `블루-그린` 배포방식을 바탕으로 새로운 인스턴스 그룹을 생성합니다.
+6. 미리 정해둔 템플릿을 바탕으로 시작된 인스턴스는 S3 Bucket 에 저장된 빌드 파일(번들)을 다운받습니다.
+7. 빌드파일에 포함된 AppSpec.yml 파일을 바탕으로 배포를 진행합니다.
+8. 모든 배포가 성공적으로 끝나면 CodeDeploy는 Application Load Balancer의 트래픽을 새로운 타겟 그룹으로 변경하고, 기존의 그룹을 종료합니다.
+

@@ -1,0 +1,58 @@
+---
+import { SITE } from '../consts';
+import Head from '../components/Head.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import '../styles/tokens.css';
+import '../styles/base.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+  published?: Date;
+  tags?: string[];
+}
+const { title, description, published, tags } = Astro.props;
+const themeVars = `:root{--accent:${SITE.accent.light};--measure:${SITE.measure};--body-size:${SITE.bodySize}}`
+  + `:root[data-theme='dark']{--accent:${SITE.accent.dark}}`
+  + `@media(prefers-color-scheme:dark){:root:not([data-theme='light']){--accent:${SITE.accent.dark}}}`;
+---
+<!doctype html>
+<html lang={SITE.lang} data-theme-preload>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <Head title={title} description={description} published={published} tags={tags} />
+
+    <style set:html={themeVars}></style>
+
+    <!-- 폰트는 직접 들고 있다. 바깥 CDN 에 매달리지 않는다 -->
+    <link
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      href="/fonts/ibm-plex-mono-latin-400-normal.woff2"
+      crossorigin
+    />
+    <link rel="stylesheet" href="/fonts/pretendard.css" />
+
+    <script is:inline>
+      // 첫 그림 전에 테마를 정해 깜빡임을 막는다
+      (function () {
+        try {
+          var d = document.documentElement.dataset;
+          var t = localStorage.getItem('theme');
+          if (t === 'dark' || t === 'light') d.theme = t;
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body>
+    <a class="skip" href="#main">본문으로</a>
+    <Header />
+    <main id="main" class="shell">
+      <slot />
+    </main>
+    <Footer />
+  </body>
+</html>

@@ -1,0 +1,49 @@
+/* ── 색 ────────────────────────────────────────────────
+   거의 흰 종이 + 청회색 잉크 + 청록 액센트 하나.
+   액센트는 링크 밑줄 / 선택 영역 / 현재 메뉴 에만 쓴다. */
+:root {
+  --bg:        #fcfcfb;
+  --bg-sunk:   #f3f4f2;   /* 코드블록·인용 바탕 */
+  --ink:       #18242b;   /* 본문 */
+  --ink-dim:   #5e6e78;   /* 날짜·메타 */
+  --ink-faint: #93a1a8;   /* 더 연한 것 */
+  --rule:      #e4e7e6;
+  --accent:    #1d47a5;
+
+  --measure: 47.5rem;     /* 760px · 한글 한 줄 42자 */
+  --body-size: 17px;
+  --gutter: 1.25rem;
+  --year-col: 4.5rem;     /* 목록 왼쪽 연도 칸 */
+
+  --font-sans: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont,
+               system-ui, 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace;
+
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  --bg:        #10171b;
+  --bg-sunk:   #192228;
+  --ink:       #d8e1e4;
+  --ink-dim:   #86959d;
+  --ink-faint: #5d6c74;
+  --rule:      #263238;
+  --accent:    #8ab0ee;
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg:        #10171b;
+    --bg-sunk:   #192228;
+    --ink:       #d8e1e4;
+    --ink-dim:   #86959d;
+    --ink-faint: #5d6c74;
+    --rule:      #263238;
+    --accent:    #8ab0ee;
+    color-scheme: dark;
+  }
+}
+
+

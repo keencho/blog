@@ -1,0 +1,108 @@
+---
+import { SITE, NAV } from '../consts';
+import Search from './Search.astro';
+const here = Astro.url.pathname;
+const isCurrent = (href: string) => (href === '/' ? here === '/' : here.startsWith(href));
+---
+<header class="site">
+  <div class="shell row">
+    <a class="wordmark" href="/">{SITE.title}</a>
+    <nav aria-label="주요">
+      {NAV.map((item) => (
+        <a href={item.href} aria-current={isCurrent(item.href) ? 'page' : undefined}>
+          {item.label}
+        </a>
+      ))}
+      {SITE.search && <Search />}
+      <button type="button" class="theme" aria-label="어둡게" data-theme-toggle>
+        <svg class="moon" viewBox="0 0 20 20" width="15" height="15" aria-hidden="true">
+          <path
+            d="M15.5 12.4A6.2 6.2 0 0 1 7.6 4.5a6.4 6.4 0 1 0 7.9 7.9Z"
+            fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"
+          />
+        </svg>
+        <svg class="sun" viewBox="0 0 20 20" width="15" height="15" aria-hidden="true">
+          <circle cx="10" cy="10" r="3.6" fill="none" stroke="currentColor" stroke-width="1.3" />
+          <g stroke="currentColor" stroke-width="1.3" stroke-linecap="round">
+            <path d="M10 1.6v2M10 16.4v2M1.6 10h2M16.4 10h2" />
+            <path d="M4.1 4.1l1.4 1.4M14.5 14.5l1.4 1.4M15.9 4.1l-1.4 1.4M5.5 14.5l-1.4 1.4" />
+          </g>
+        </svg>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<style>
+  .site { padding-block: 1.6rem 2.6rem; }
+  .row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+  .wordmark {
+    font-weight: 700;
+    font-size: 1.02rem;
+    letter-spacing: -0.015em;
+    text-decoration: none;
+  }
+  nav {
+    display: flex;
+    align-items: baseline;
+    gap: 1.1rem;
+    font-size: 0.9rem;
+  }
+  nav a {
+    color: var(--ink-dim);
+    text-decoration: none;
+    padding-bottom: 2px;
+    border-bottom: 1.5px solid transparent;
+  }
+  nav a:hover { color: var(--ink); }
+  nav a[aria-current='page'] {
+    color: var(--ink);
+    border-bottom-color: var(--accent);
+  }
+  .theme {
+    align-self: center;
+    background: none;
+    border: 0;
+    padding: 2px;
+    color: var(--ink-faint);
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+  }
+  .theme:hover { color: var(--ink); }
+
+  /* 밝을 때는 달(어둡게 하라), 어두울 때는 해(밝게 하라) */
+  .theme .sun { display: none; }
+  :global(:root[data-theme='dark']) .theme .moon { display: none; }
+  :global(:root[data-theme='dark']) .theme .sun { display: block; }
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme='light'])) .theme .moon { display: none; }
+    :global(:root:not([data-theme='light'])) .theme .sun { display: block; }
+  }
+</style>
+
+<script>
+  const root = document.documentElement;
+  const btn = document.querySelector('[data-theme-toggle]');
+
+  const isDark = () =>
+    root.dataset.theme === 'dark' ||
+    (!root.dataset.theme && matchMedia('(prefers-color-scheme: dark)').matches);
+
+  const label = () => btn?.setAttribute('aria-label', isDark() ? '밝게' : '어둡게');
+  label();
+
+  btn?.addEventListener('click', () => {
+    const next = isDark() ? 'light' : 'dark';
+    root.dataset.theme = next;
+    try { localStorage.setItem('theme', next); } catch (e) {}
+    label();
+  });
+
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', label);
+</script>

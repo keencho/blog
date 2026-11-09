@@ -1,0 +1,63 @@
+---
+import { SITE } from '../consts';
+
+interface Props {
+  title?: string;
+  description?: string;
+  /** 글 페이지면 발행일 */
+  published?: Date;
+  tags?: string[];
+}
+const { title, description = SITE.description, published, tags = [] } = Astro.props;
+
+const pageTitle = title ? `${title} · ${SITE.title}` : SITE.title;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const ogImage = new URL('/og.png', Astro.site);
+const isPost = Boolean(published);
+---
+<title>{pageTitle}</title>
+<meta name="description" content={description} />
+<link rel="canonical" href={canonical} />
+
+<meta property="og:type" content={isPost ? 'article' : 'website'} />
+<meta property="og:title" content={title ?? SITE.title} />
+<meta property="og:description" content={description} />
+<meta property="og:url" content={canonical} />
+<meta property="og:site_name" content={SITE.title} />
+<meta property="og:locale" content="ko_KR" />
+<meta property="og:image" content={ogImage} />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={title ?? SITE.title} />
+<meta name="twitter:description" content={description} />
+<meta name="twitter:image" content={ogImage} />
+
+{published && <meta property="article:published_time" content={published.toISOString()} />}
+{published && <meta property="article:author" content={SITE.author} />}
+{tags.map((t) => <meta property="article:tag" content={t} />)}
+
+<link rel="alternate" type="application/rss+xml" title={SITE.title} href="/feed.xml" />
+
+{
+  /* 측정 ID 가 없으면 스크립트 자체가 들어가지 않는다.
+     개발 중 방문은 집계하지 않는다 */
+  SITE.analytics && import.meta.env.PROD && (
+    <>
+      <script
+        is:inline
+        async
+        src={`https://www.googletagmanager.com/gtag/js?id=${SITE.analytics}`}
+      />
+      <script is:inline define:vars={{ gaId: SITE.analytics }}>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() {
+          dataLayer.push(arguments);
+        }
+        gtag('js', new Date());
+        gtag('config', gaId);
+      </script>
+    </>
+  )
+}

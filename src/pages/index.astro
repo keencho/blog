@@ -1,0 +1,101 @@
+---
+import Base from '../layouts/Base.astro';
+import { getPosts } from '../lib/posts';
+import { year as kstYear, monthDay, iso } from '../lib/date';
+
+const posts = await getPosts();
+
+// 연도로 묶는다 — 왼쪽에 연도를 한 번만 세우기 위해
+const years: { year: number; items: typeof posts }[] = [];
+for (const post of posts) {
+  const y = kstYear(post.data.date);
+  const last = years.at(-1);
+  if (last && last.year === y) last.items.push(post);
+  else years.push({ year: y, items: [post] });
+}
+
+---
+<Base>
+  <h1 class="hidden">글</h1>
+  {years.map(({ year, items }) => (
+    <section class="year">
+      <h2 class="label">{year}</h2>
+      <ul class="list">
+        {items.map((post) => (
+          <li>
+            <time datetime={iso(post.data.date)}>{monthDay(post.data.date)}</time>
+            <a href={`/posts/${post.id}/`}>{post.data.title}</a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  ))}
+</Base>
+
+<style>
+  .hidden {
+    position: absolute;
+    width: 1px; height: 1px;
+    overflow: hidden; clip-path: inset(50%);
+  }
+
+  .year {
+    display: grid;
+    grid-template-columns: var(--year-col) 1fr;
+    align-items: start;
+    margin-bottom: 2.6rem;
+    margin-left: calc(var(--year-col) * -1);
+  }
+
+  .label {
+    margin: 0;
+    font-size: 0.82rem;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-faint);
+    line-height: 2.05rem;
+    position: sticky;
+    top: 1rem;
+  }
+
+  .list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .list li {
+    display: flex;
+    gap: 0.9rem;
+    align-items: baseline;
+    line-height: 2.05rem;
+  }
+
+  time {
+    flex: none;
+    font-size: 0.82rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-faint);
+  }
+
+  .list a {
+    text-decoration: none;
+    letter-spacing: -0.012em;
+    word-break: keep-all;
+    border-bottom: 1px solid transparent;
+  }
+  .list a:hover { border-bottom-color: var(--accent); }
+
+  @media (max-width: 58rem) {
+    .year {
+      grid-template-columns: 1fr;
+      margin-left: 0;
+    }
+    .label {
+      position: static;
+      padding-bottom: 0.4rem;
+      border-bottom: 1px solid var(--rule);
+      margin-bottom: 0.6rem;
+    }
+  }
+</style>

@@ -1,0 +1,18 @@
+# 빌드 산출물
+dist/
+.astro/
+node_modules/
+
+# 환경
+.env
+.env.production
+
+# OS
+.DS_Store
+Thumbs.db
+
+# 아직 낼 때가 안 된 글. 낼 때 content/posts/<연도>/ 로 옮긴다
+content/drafts/
+
+# 폰트는 저장소에 둔다 (CDN 에 매달리지 않으려고)
+# content/diagrams/*.svg 도 저장소에 둔다 (빌드에서 Playwright 를 빼려고)

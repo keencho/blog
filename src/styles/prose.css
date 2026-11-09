@@ -1,0 +1,168 @@
+/* 본문. word-break:keep-all 은 여기에만 건다 (상속되므로 전역 금지) */
+.prose {
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+.prose > * { margin-block: 0 1.15em; }
+.prose > :last-child { margin-bottom: 0; }
+
+.prose h2, .prose h3, .prose h4 {
+  line-height: 1.45;
+  letter-spacing: -0.01em;
+  margin-block: 2.4em 0.8em;
+}
+.prose h2 { font-size: 1.32rem; font-weight: 700; }
+.prose h3 { font-size: 1.12rem; font-weight: 700; }
+.prose h4 { font-size: 1rem;    font-weight: 700; color: var(--ink-dim); }
+.prose > h2:first-child, .prose > h3:first-child { margin-top: 0; }
+
+.prose p { margin-block: 0 1.15em; }
+
+.prose a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.22em;
+}
+.prose a:hover { color: var(--accent); }
+
+.prose strong { font-weight: 700; }
+.prose em { font-style: normal; background: linear-gradient(transparent 62%, color-mix(in srgb, var(--accent) 22%, transparent) 0); }
+
+.prose ul, .prose ol { padding-left: 1.3em; }
+.prose li { margin-block: 0.3em; }
+.prose li::marker { color: var(--ink-faint); }
+
+.prose blockquote {
+  margin-inline: 0;
+  padding: 0.1em 0 0.1em 1.1em;
+  border-left: 2px solid var(--rule);
+  color: var(--ink-dim);
+}
+
+.prose hr {
+  border: 0;
+  border-top: 1px solid var(--rule);
+  margin-block: 2.6em;
+}
+
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+  word-break: normal;
+}
+.prose th, .prose td {
+  text-align: left;
+  padding: 0.5em 0.7em;
+  border-bottom: 1px solid var(--rule);
+  vertical-align: top;
+}
+.prose th { font-weight: 700; border-bottom-color: var(--ink-faint); }
+
+.prose img {
+  display: block;
+  margin-inline: auto;
+  border: 1px solid var(--rule);
+}
+
+/* ── 코드 ────────────────────────────────────────────── */
+.prose :not(pre) > code {
+  font-family: var(--font-mono);
+  font-size: 0.86em;
+  background: var(--bg-sunk);
+  padding: 0.12em 0.34em;
+  border-radius: 3px;
+  word-break: break-all;
+}
+
+.prose pre {
+  margin-inline: 0;
+  padding: 0.95rem 1.1rem;
+  border-radius: 5px;
+  background: var(--bg-sunk) !important;
+  overflow-x: auto;
+  font-size: 0.855rem;
+  line-height: 1.62;
+  word-break: normal;
+  tab-size: 2;
+  border: 1px solid var(--rule);
+}
+.prose pre code {
+  font-family: var(--font-mono);
+  background: none;
+  padding: 0;
+}
+
+/* Shiki 이중 테마 — 두 벌을 같이 구워놓고 변수만 갈아끼운다.
+   밝을 때 색을 안 주면 전부 회색으로 나온다 */
+.astro-code, .astro-code span,
+.shiki, .shiki span {
+  color: var(--shiki-light);
+  font-style: var(--shiki-light-font-style);
+  font-weight: var(--shiki-light-font-weight);
+}
+
+:root[data-theme='dark'] :is(.astro-code, .shiki),
+:root[data-theme='dark'] :is(.astro-code, .shiki) span {
+  color: var(--shiki-dark) !important;
+  font-style: var(--shiki-dark-font-style) !important;
+  font-weight: var(--shiki-dark-font-weight) !important;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .astro-code,
+  :root:not([data-theme='light']) .astro-code span {
+    color: var(--shiki-dark) !important;
+    font-style: var(--shiki-dark-font-style) !important;
+    font-weight: var(--shiki-dark-font-weight) !important;
+  }
+}
+
+/* ── mermaid ──────────────────────────────────────────
+   색은 구울 때 CSS 변수로 바뀌어 저장된다.
+   변수는 :root 에 둔다 — 본문 밖(확대 화면)에서도 같은 색을 써야 한다 */
+:root {
+  --mm-fill:         #eceff2;
+  --mm-fill-2:       #e1e6ea;
+  --mm-cluster:      #f4f6f7;
+  --mm-cluster-line: #ccd5db;
+  --mm-stroke:       #7d8d98;
+  --mm-text:         #18242b;
+  --mm-label-bg:     #fcfcfb;
+  --mm-note:         #f5f3e4;
+  --mm-note-line:    #c9caa8;
+}
+
+:root[data-theme='dark'] {
+  --mm-fill:         #27353f;
+  --mm-fill-2:       #2f3f4a;
+  --mm-cluster:      #1b262d;
+  --mm-cluster-line: #3b4b56;
+  --mm-stroke:       #91a7b4;
+  --mm-text:         #e4ecef;
+  --mm-label-bg:     #10171b;
+  --mm-note:         #2e2f22;
+  --mm-note-line:    #5d5f44;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --mm-fill:         #27353f;
+    --mm-fill-2:       #2f3f4a;
+    --mm-cluster:      #1b262d;
+    --mm-cluster-line: #3b4b56;
+    --mm-stroke:       #91a7b4;
+    --mm-text:         #e4ecef;
+    --mm-label-bg:     #10171b;
+    --mm-note:         #2e2f22;
+    --mm-note-line:    #5d5f44;
+  }
+}
+
+.prose svg[data-mermaid] {
+  display: block;
+  margin: 2rem auto;
+  max-width: 100%;
+  height: auto;
+}

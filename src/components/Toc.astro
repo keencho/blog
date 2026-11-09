@@ -1,0 +1,143 @@
+---
+import type { MarkdownHeading } from 'astro';
+
+interface Props { headings: MarkdownHeading[] }
+const { headings } = Astro.props;
+
+// h2·h3 만 쓴다. h4 부터는 목차가 너무 잘게 쪼개진다
+const items = headings.filter((h) => h.depth === 2 || h.depth === 3);
+---
+{items.length > 1 && (
+  <nav class="toc" aria-labelledby="toc-label" data-toc>
+    <details open>
+      <summary id="toc-label">목차<span class="n">{items.length}</span></summary>
+      <ol>
+        {items.map((h) => (
+          <li data-depth={h.depth}>
+            <a href={`#${h.slug}`}>{h.text}</a>
+          </li>
+        ))}
+      </ol>
+    </details>
+  </nav>
+)}
+
+<style>
+  /* ── 모바일·태블릿 — 제목 아래 접어둔다 ─────────────── */
+  .toc {
+    margin: 0 0 2.4rem;
+    border-left: 2px solid var(--rule);
+    padding-left: 1rem;
+    font-size: 0.9rem;
+  }
+
+  summary {
+    cursor: pointer;
+    color: var(--ink-dim);
+    list-style: none;
+    display: flex;
+    align-items: baseline;
+    gap: 0.4rem;
+    user-select: none;
+  }
+  summary::-webkit-details-marker { display: none; }
+  summary::after {
+    content: '';
+    width: 0.4em;
+    height: 0.4em;
+    border-right: 1.5px solid currentColor;
+    border-bottom: 1.5px solid currentColor;
+    transform: rotate(45deg) translateY(-0.15em);
+    margin-left: 0.1rem;
+  }
+  details[open] > summary::after { transform: rotate(-135deg) translateY(-0.1em); }
+  summary:hover { color: var(--ink); }
+
+  .n {
+    font-size: 0.78em;
+    color: var(--ink-faint);
+    font-variant-numeric: tabular-nums;
+  }
+
+  ol {
+    list-style: none;
+    margin: 0.55rem 0 0;
+    padding: 0;
+  }
+  li { line-height: 1.75; word-break: keep-all; }
+  li[data-depth='3'] { padding-left: 0.9rem; font-size: 0.95em; }
+
+  a {
+    color: var(--ink-dim);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+  }
+  a:hover { color: var(--ink); }
+  a[data-current] {
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  /* ── PC — 본문 오른쪽 바깥에 띄운다 ────────────────── */
+  @media (min-width: 68.75rem) {
+    .toc {
+      position: fixed;
+      top: 7.5rem;
+      left: calc(50% + var(--measure) / 2 + 2.5rem);
+      width: min(13.5rem, calc(50vw - var(--measure) / 2 - 4rem));
+      max-height: calc(100vh - 11rem);
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      margin: 0;
+      font-size: 0.84rem;
+      scrollbar-width: thin;
+    }
+    /* PC 에서는 항상 펼친 상태로 두고 접기 화살표를 감춘다 */
+    summary { pointer-events: none; }
+    summary::after { display: none; }
+    li { line-height: 1.6; }
+    ol { margin-top: 0.6rem; }
+  }
+</style>
+
+<script>
+  // PC 에서는 접기를 막고, 지금 읽는 절을 표시한다
+  const toc = document.querySelector('[data-toc]');
+  if (toc) {
+    const details = toc.querySelector('details')!;
+    const wide = matchMedia('(min-width: 68.75rem)');
+
+    const applyWide = () => {
+      if (wide.matches) details.open = true;
+    };
+    applyWide();
+    wide.addEventListener('change', applyWide);
+
+    const links = [...toc.querySelectorAll<HTMLAnchorElement>('a[href^="#"]')];
+    const targets = links
+      .map((a) => document.getElementById(decodeURIComponent(a.hash.slice(1))))
+      .filter((el): el is HTMLElement => !!el);
+
+    if (targets.length) {
+      let current: HTMLAnchorElement | null = null;
+      const mark = (el: Element) => {
+        const next = links.find((a) => decodeURIComponent(a.hash.slice(1)) === el.id) ?? null;
+        if (next === current) return;
+        current?.removeAttribute('data-current');
+        next?.setAttribute('data-current', '');
+        current = next;
+      };
+
+      const io = new IntersectionObserver(
+        (entries) => {
+          const visible = entries
+            .filter((e) => e.isIntersecting)
+            .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+          if (visible[0]) mark(visible[0].target);
+        },
+        { rootMargin: '-80px 0px -70% 0px', threshold: 0 }
+      );
+      targets.forEach((t) => io.observe(t));
+    }
+  }
+</script>

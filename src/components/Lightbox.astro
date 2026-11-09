@@ -1,0 +1,255 @@
+---
+// 본문 이미지와 다이어그램을 눌러서 크게 본다.
+// 휠 확대 · 드래그 이동 · 모바일 핀치 · ESC 로 닫기
+---
+<style is:global>
+  .prose img[data-zoomable],
+  .prose svg[data-zoomable] {
+    cursor: zoom-in;
+  }
+  /* SVG 는 기본적으로 칠해진 부분만 클릭을 받는다. 빈 곳도 받게 한다 */
+  .prose svg[data-zoomable] {
+    pointer-events: all;
+  }
+  .prose svg[data-zoomable] * {
+    pointer-events: none;
+  }
+
+  /* 눌러서 크게 볼 수 있다는 표시 */
+  .prose .zoomnote {
+    display: block;
+    margin: -1.4rem 0 2.2rem;
+    text-align: center;
+    font-size: 0.78rem;
+    color: var(--ink-faint);
+  }
+
+  .lb {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgb(0 0 0 / 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    cursor: zoom-out;
+  }
+  .lb[hidden] { display: none; }
+
+  .lb-stage {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .lb-stage > * {
+    max-width: 92%;
+    max-height: 86%;
+    width: auto;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 8px 32px rgb(0 0 0 / 0.3);
+    transition: transform 0.1s ease-out;
+    cursor: grab;
+  }
+  /* 다이어그램은 바탕을 깔아야 선이 보인다. 지금 테마를 따른다 */
+  .lb-stage > svg {
+    background: var(--bg);
+    padding: 1.5rem;
+    box-sizing: border-box;
+    max-width: 94%;
+    max-height: 90%;
+  }
+
+  .lb-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    background: rgb(255 255 255 / 0.15);
+    border: 2px solid rgb(255 255 255 / 0.5);
+    border-radius: 50%;
+    color: #fff;
+    cursor: pointer;
+    z-index: 1;
+  }
+  .lb-close:hover { background: rgb(255 255 255 / 0.28); }
+
+  .lb-hint {
+    position: absolute;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 8px 16px;
+    border-radius: 20px;
+    background: rgb(0 0 0 / 0.5);
+    backdrop-filter: blur(4px);
+    color: rgb(255 255 255 / 0.72);
+    font-family: var(--font-sans);
+    font-size: 13px;
+    text-align: center;
+    pointer-events: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .lb-stage > * { transition: none; }
+  }
+</style>
+
+<script>
+  const prose = document.querySelector('.prose');
+  if (prose) {
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+    // ── 틀 만들기 ───────────────────────────────────
+    const lb = document.createElement('div');
+    lb.className = 'lb';
+    lb.hidden = true;
+    lb.innerHTML = `
+      <button type="button" class="lb-close" aria-label="닫기">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" aria-hidden="true">
+          <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </button>
+      <div class="lb-stage"></div>
+      <p class="lb-hint">${
+        isMobile
+          ? '핀치로 확대 · 탭하여 닫기'
+          : '휠로 확대 · 끌어서 이동 · 눌러서 또는 ESC 로 닫기'
+      }</p>`;
+    document.body.appendChild(lb);
+
+    const stage = lb.querySelector<HTMLElement>('.lb-stage')!;
+    let target: HTMLElement | null = null;
+    const s = { scale: 1, tx: 0, ty: 0, dragging: false, sx: 0, sy: 0, d0: 0, s0: 1 };
+
+    const apply = () => {
+      if (!target) return;
+      target.style.transform = `translate(${s.tx}px, ${s.ty}px) scale(${s.scale})`;
+      target.style.cursor = s.scale > 1 ? (s.dragging ? 'grabbing' : 'grab') : 'zoom-out';
+    };
+
+    const open = (node: Element) => {
+      const copy = node.cloneNode(true) as HTMLElement;
+      copy.removeAttribute('data-zoomable');
+      copy.removeAttribute('style');
+      copy.removeAttribute('loading');
+      stage.replaceChildren(copy);
+      target = copy;
+      Object.assign(s, { scale: 1, tx: 0, ty: 0, dragging: false });
+      apply();
+      lb.hidden = false;
+      document.body.style.overflow = 'hidden';
+    };
+
+    const close = () => {
+      lb.hidden = true;
+      stage.replaceChildren();
+      target = null;
+      document.body.style.overflow = '';
+    };
+
+    // ── 닫기 ────────────────────────────────────────
+    lb.querySelector('.lb-close')!.addEventListener('click', (e) => {
+      e.stopPropagation();
+      close();
+    });
+    lb.addEventListener('click', (e) => {
+      if (e.target === lb || e.target === stage) close();
+      else if (target && s.scale === 1 && !s.dragging) close();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !lb.hidden) close();
+    });
+
+    // ── 확대 · 이동 ─────────────────────────────────
+    stage.addEventListener(
+      'wheel',
+      (e) => {
+        if (isMobile || !target) return;
+        e.preventDefault();
+        s.scale = Math.min(Math.max(0.5, s.scale + (e.deltaY > 0 ? -0.15 : 0.15)), 5);
+        apply();
+      },
+      { passive: false }
+    );
+
+    stage.addEventListener('mousedown', (e) => {
+      if (isMobile || !target || s.scale <= 1) return;
+      s.dragging = true;
+      s.sx = e.clientX - s.tx;
+      s.sy = e.clientY - s.ty;
+      e.preventDefault();
+      apply();
+    });
+    document.addEventListener('mousemove', (e) => {
+      if (!s.dragging) return;
+      s.tx = e.clientX - s.sx;
+      s.ty = e.clientY - s.sy;
+      apply();
+    });
+    document.addEventListener('mouseup', () => {
+      if (!s.dragging) return;
+      s.dragging = false;
+      apply();
+    });
+
+    const dist = (t: TouchList) =>
+      Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+
+    stage.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 2) {
+        s.d0 = dist(e.touches);
+        s.s0 = s.scale;
+      }
+    });
+    stage.addEventListener(
+      'touchmove',
+      (e) => {
+        if (e.touches.length !== 2 || !target) return;
+        e.preventDefault();
+        s.scale = Math.min(Math.max(0.5, s.s0 * (dist(e.touches) / s.d0)), 5);
+        apply();
+      },
+      { passive: false }
+    );
+
+    // ── 대상 걸기 ───────────────────────────────────
+    const hook = (node: Element) => {
+      if (node.hasAttribute('data-zoomable')) return;
+      node.setAttribute('data-zoomable', '');
+      node.setAttribute('role', 'button');
+      node.setAttribute('tabindex', '0');
+      node.addEventListener('click', () => open(node));
+      node.addEventListener('keydown', (e) => {
+        const k = (e as KeyboardEvent).key;
+        if (k === 'Enter' || k === ' ') {
+          e.preventDefault();
+          open(node);
+        }
+      });
+    };
+
+    prose.querySelectorAll('img').forEach(hook);
+    prose.querySelectorAll('svg[data-mermaid]').forEach((svg) => {
+      hook(svg);
+      // 본문 폭에 맞추느라 줄어든 것에는 안내를 붙인다
+      const natural = (svg as SVGSVGElement).viewBox?.baseVal?.width ?? 0;
+      const shown = svg.getBoundingClientRect().width;
+      if (natural > 0 && shown > 0 && shown < natural * 0.92) {
+        const note = document.createElement('span');
+        note.className = 'zoomnote';
+        note.textContent = '눌러서 크게 보기';
+        svg.after(note);
+      }
+    });
+  }
+</script>

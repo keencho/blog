@@ -1,0 +1,39 @@
+---
+import Base from '../../layouts/Base.astro';
+import PostRows from '../../components/PostRows.astro';
+import { slugify } from '../../lib/slug';
+import { getPosts } from '../../lib/posts';
+
+export async function getStaticPaths() {
+  const posts = await getPosts();
+  const names = new Map<string, string>();
+  for (const p of posts) for (const c of p.data.tags) names.set(slugify(c), c);
+
+  return [...names].map(([slug, name]) => ({
+    params: { tag: slug },
+    props: {
+      name,
+      posts: posts
+        .filter((p) => p.data.tags.some((c) => slugify(c) === slug))
+        .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf()),
+    },
+  }));
+}
+
+const { name, posts } = Astro.props;
+---
+<Base title={name}>
+  <h1>{name}<span class="n">{posts.length}</span></h1>
+  <PostRows posts={posts} />
+</Base>
+
+<style>
+  h1 { font-size: 1.5rem; margin: 0 0 1.8rem; letter-spacing: -0.02em; }
+  .n {
+    font-size: 0.82rem;
+    font-weight: 400;
+    color: var(--ink-faint);
+    margin-left: 0.5em;
+    font-variant-numeric: tabular-nums;
+  }
+</style>

@@ -1,0 +1,168 @@
+---
+// 본문에 붙는 작은 것들 — 제목 앵커 링크, 코드 복사 버튼
+---
+<style is:global>
+  /* 제목 옆 링크 — 마우스를 올렸을 때만 보인다 */
+  .prose :is(h2, h3, h4) {
+    position: relative;
+  }
+  .prose .anchor {
+    position: absolute;
+    left: -1.1em;
+    top: 0;
+    width: 1em;
+    text-align: center;
+    color: var(--ink-faint);
+    text-decoration: none;
+    opacity: 0;
+    font-weight: 400;
+    transition: opacity 0.12s;
+  }
+  .prose :is(h2, h3, h4):hover .anchor,
+  .prose .anchor:focus-visible { opacity: 1; }
+  .prose .anchor:hover { color: var(--accent); }
+  @media (max-width: 46rem) {
+    .prose .anchor { display: none; }
+  }
+
+  /* 코드 복사 */
+  .prose .codewrap {
+    position: relative;
+  }
+  .prose .copy {
+    position: absolute;
+    top: 0.45rem;
+    right: 0.45rem;
+    padding: 0.22rem 0.5rem;
+    font: inherit;
+    font-size: 0.72rem;
+    font-family: var(--font-sans);
+    color: var(--ink-dim);
+    background: var(--bg);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.12s;
+  }
+  .prose .codewrap:hover .copy,
+  .prose .copy:focus-visible { opacity: 1; }
+  .prose .copy:hover { color: var(--ink); border-color: var(--ink-faint); }
+  .prose .copy[data-done] { color: var(--accent); border-color: var(--accent); opacity: 1; }
+
+  /* 긴 코드는 접는다. 안쪽 스크롤은 쓰지 않는다 — 모바일에서 스크롤이 겹친다 */
+  .prose .codewrap[data-fold] pre {
+    max-height: var(--fold-height);
+    overflow-y: hidden;
+  }
+  .prose .codewrap[data-fold='open'] pre {
+    max-height: none;
+  }
+
+  .prose .fade {
+    position: absolute;
+    left: 1px;
+    right: 1px;
+    bottom: 1px;
+    height: 5.5rem;
+    pointer-events: none;
+    background: linear-gradient(to bottom, transparent, var(--bg-sunk) 85%);
+    border-radius: 0 0 5px 5px;
+  }
+  .prose .codewrap[data-fold='open'] .fade { display: none; }
+
+  .prose .unfold {
+    position: absolute;
+    left: 50%;
+    bottom: 0.6rem;
+    transform: translateX(-50%);
+    padding: 0.28rem 0.85rem;
+    font: inherit;
+    font-size: 0.78rem;
+    font-family: var(--font-sans);
+    color: var(--ink-dim);
+    background: var(--bg);
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    cursor: pointer;
+  }
+  .prose .unfold:hover { color: var(--ink); border-color: var(--ink-faint); }
+  .prose .codewrap[data-fold='open'] .unfold {
+    position: static;
+    transform: none;
+    display: block;
+    margin: 0.5rem auto 0;
+  }
+
+</style>
+
+<script>
+  const prose = document.querySelector('.prose');
+  if (prose) {
+    // 제목 앵커
+    prose.querySelectorAll<HTMLElement>('h2[id], h3[id], h4[id]').forEach((h) => {
+      const a = document.createElement('a');
+      a.className = 'anchor';
+      a.href = `#${h.id}`;
+      a.textContent = '#';
+      a.setAttribute('aria-label', `${h.textContent?.trim()} 로 가는 링크`);
+      h.prepend(a);
+    });
+
+    // 코드 복사
+    prose.querySelectorAll<HTMLPreElement>('pre').forEach((pre) => {
+      const wrap = document.createElement('div');
+      wrap.className = 'codewrap';
+      pre.parentNode?.insertBefore(wrap, pre);
+      wrap.appendChild(pre);
+
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'copy';
+      btn.textContent = '복사';
+      wrap.appendChild(btn);
+
+      // 긴 코드는 접어둔다. 실측상 전체 514개 중 20줄 이하가 69% 라
+      // 30줄을 넘는 것만 걸린다
+      const FOLD_LINES = 30;
+      const lines = (pre.querySelector('code')?.textContent ?? '').split(/\r?\n/).length;
+      if (lines > FOLD_LINES) {
+        const lineH = parseFloat(getComputedStyle(pre).lineHeight) || 22;
+        wrap.style.setProperty('--fold-height', `${Math.round(lineH * 22 + 30)}px`);
+        wrap.dataset.fold = 'closed';
+
+        const fade = document.createElement('div');
+        fade.className = 'fade';
+        wrap.appendChild(fade);
+
+        const more = document.createElement('button');
+        more.type = 'button';
+        more.className = 'unfold';
+        more.textContent = `${lines}줄 전부 보기`;
+        wrap.appendChild(more);
+
+        more.addEventListener('click', () => {
+          const open = wrap.dataset.fold === 'open';
+          wrap.dataset.fold = open ? 'closed' : 'open';
+          more.textContent = open ? `${lines}줄 전부 보기` : '접기';
+          if (open) wrap.scrollIntoView({ block: 'nearest' });
+        });
+      }
+
+      btn.addEventListener('click', async () => {
+        const text = pre.querySelector('code')?.textContent ?? '';
+        try {
+          await navigator.clipboard.writeText(text);
+          btn.textContent = '복사됨';
+          btn.dataset.done = '';
+        } catch {
+          btn.textContent = '안 됨';
+        }
+        setTimeout(() => {
+          btn.textContent = '복사';
+          delete btn.dataset.done;
+        }, 1400);
+      });
+    });
+  }
+</script>

@@ -1,0 +1,87 @@
+---
+import Base from '../layouts/Base.astro';
+import { SITE } from '../consts';
+import '../styles/prose.css';
+---
+<Base title="소개">
+  <article class="about">
+    <h1>소개</h1>
+
+    <p class="lead">
+      조세영. 백엔드 개발자입니다.
+    </p>
+
+    <div class="prose">
+      <p>
+        물류 회사에서 7년째 택배 접수와 운송, 창고 시스템을 만들고 있습니다. 두 번의
+        합병을 거치며 시스템을 새로 세우는 일이 많았고, AWS 인프라와 배포도 같이 맡고
+        있습니다. 요즘은 LLM 상담 챗봇 플랫폼을 기획부터 운영까지 보고 있습니다.
+      </p>
+
+      <h2>여기에 쓰는 것</h2>
+
+      <p>
+        일하다 막혔던 것을 적습니다. 2019년부터 쓰고 있고, AWS와 Spring, JPA, 인프라가
+        많습니다. 요즘은 AI 쪽이 늘었습니다.
+      </p>
+
+      <p>쓸 때 지키는 것들이 있습니다.</p>
+
+      <ul>
+        <li><strong>해본 것만 씁니다.</strong> 읽고 정리한 것은 쓰지 않습니다</li>
+        <li><strong>숫자가 있으면 숫자로 적습니다.</strong> 비용이든 지연이든 건수든</li>
+        <li><strong>헤맨 과정도 같이 적습니다.</strong> 결론만 적으면 나중에 제가 못 알아봅니다</li>
+        <li><strong>회사와 서비스 이름은 뺍니다.</strong> 겪은 문제만 남기고 일반적인 이야기로 바꿔 씁니다</li>
+      </ul>
+
+      <p>
+        그래서 글이 대체로 길고 코드가 많습니다. 나중에 같은 데서 막힐 저를 위해 쓰는
+        글이라 그렇습니다.
+      </p>
+    </div>
+
+    <h2 class="small">연락</h2>
+    <ul class="links">
+      {SITE.links.map((l) => (
+        <li><a href={l.href}>{l.label}</a></li>
+      ))}
+      <li><a href="/feed.xml">RSS</a></li>
+    </ul>
+  </article>
+</Base>
+
+<style>
+  h1 { font-size: 1.5rem; margin: 0 0 1.2rem; letter-spacing: -0.02em; }
+
+  .lead {
+    margin: 0 0 1.6rem;
+    font-size: 1.12rem;
+    letter-spacing: -0.015em;
+  }
+
+  .prose :global(h2) { margin-block: 2.6em 0.8em; }
+
+  .small {
+    font-size: 1rem;
+    margin: 3rem 0 0.9rem;
+    letter-spacing: -0.015em;
+  }
+
+  .links {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.4rem;
+    font-size: 0.94rem;
+  }
+  .links a {
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-color: var(--accent);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.22em;
+  }
+  .links a:hover { color: var(--accent); }
+</style>
