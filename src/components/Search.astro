@@ -148,16 +148,6 @@
     min-height: 0;
     padding: 0.35rem 0;
   }
-  .shint,
-  .sempty {
-    margin: 0;
-    padding: 1.6rem 1rem;
-    text-align: center;
-    font-size: 0.85rem;
-    color: var(--ink-faint);
-  }
-  .sempty strong { color: var(--ink-dim); font-weight: 600; }
-
   .sfoot {
     display: flex;
     align-items: center;
@@ -187,6 +177,24 @@
 </style>
 
 <style is:global>
+  /* 아래 모양들은 전부 JS 가 다시 그리는 자리다.
+     Astro 의 scoped 스타일은 JS 로 넣은 요소에 안 붙으므로 전역으로 둔다 */
+
+  /* 안내 · 결과 없음 */
+  .shint,
+  .sempty {
+    margin: 0;
+    padding: 1.6rem 1rem;
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--ink-faint);
+  }
+  .sempty strong { color: var(--ink-dim); font-weight: 600; }
+  .sempty code {
+    font-family: var(--font-mono);
+    font-size: 0.92em;
+  }
+
   /* 결과 한 건 */
   .sitem {
     display: block;
@@ -339,6 +347,16 @@
     const search = await pf.debouncedSearch(q, {}, 140);
     // 더 최근 입력이 들어오면 null 을 준다
     if (search === null || mine !== token) return;
+
+    /* Pagefind 는 한글을 음절 단위로 쪼개 찾는다. 그래서 "없는말지꾸라미" 처럼
+       아무 말이나 넣어도 "없는" 이 걸려 수십 건이 나온다.
+       실측한 최고 점수 — 가상 스레드 79.0 · JPA 19.3 · 안 10.2 · 없는말지꾸라미 3.3.
+       제대로 맞은 게 하나라도 있으면 최고 점수가 확 뛰므로 그걸로 가른다. */
+    const top = search.results[0]?.score ?? 0;
+    if (top < 5) {
+      render([], q, 0);
+      return;
+    }
 
     const results = await Promise.all(
       search.results.slice(0, MAX).map((r: any) => r.data()),
