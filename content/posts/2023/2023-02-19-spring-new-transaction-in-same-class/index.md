@@ -51,7 +51,7 @@ com.keencho.application.service.InquiryService.answer
 
 `updateAnswer` 메소드의 전파레벨을 `REQUIRES_NEW`로 지정했음에도 새로운 트랜잭션이 시작되지 않았습니다.
 
-# **원인**
+## **원인**
 원인은 [스프링 공식 문서](https://docs.spring.io/spring-framework/docs/current/reference/html/data-access.html#transaction-declarative-annotations) 에 설명되어 있습니다.
 
 > In proxy mode (which is the default), only external method calls coming in through the proxy are intercepted. This means that self-invocation (in effect, a method within the target object calling another method of the target object) does not lead to an actual transaction at runtime even if the invoked method is marked with @Transactional. Also, the proxy must be fully initialized to provide the expected behavior, so you should not rely on this feature in your initialization code — for example, in a @PostConstruct method.
@@ -59,7 +59,7 @@ com.keencho.application.service.InquiryService.answer
 문제는 Spring의 AOP 프록시는 확장되지 않고 외부에서의 호출을 가로채기 위해 서비스 인스턴스를 감싼다는 것입니다.
 만약 서비스 내부에서 `this` 통해 다른 메소드를 호출한다면 이는 인스턴스에 의해 바로 호출되며 래핑 프록시는 이를 가로챌 수 없습니다. (당연히 프록시는 이러한 인스턴스 내부의 호출을 전혀 인식하지 못합니다.)
 
-# **해결**
+## **해결**
 해결 방법은 다음과 같습니다.
 
 1. Spring AOP 대신 AspectJ 사용

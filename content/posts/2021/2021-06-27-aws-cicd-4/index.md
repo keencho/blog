@@ -13,13 +13,13 @@ tags: [AWS, DevOps]
 5. [AWS 리소스 세팅](/posts/aws-cicd-5)
 6. [CodeDeploy 연동 / 마무리](/posts/aws-cicd-6)
 
-# **어플리케이션 구축 및 로드밸런서 적용**
+## **어플리케이션 구축 및 로드밸런서 적용**
 이번 포스팅에서는 간단한 Spring Boot 어플리케이션을 만들어 ec2 인스턴스에 배포하고 로드밸런서를 적용해보도록 하겠습니다.
 > 이 시리즈의 서버 구성은 3-tier 가 아닌 presentation, logic 티어가 한 티어에 존재하는 일종의 2-tier 구성 입니다.
 > 3-tier 와의 차이점은 웹(nginx, apache 등)과 어플리케이션(react, spring boot 등)이 프록시 설정을 적용한 한개의 인스턴스에 존재한다는 점입니다.
 > 3-tier 로 구성하려면 presentation(web), logic(was) 티어 간의 통신에 NLB(Network Load Balancer)를 사용하면 되며 이 시리즈를 잘 이해하신다면 쉽게 적용하실 수 있을 것이라 생각됩니다.
 
-## **Spring Boot 어플리케이션 만들기**
+### **Spring Boot 어플리케이션 만들기**
 현재 호스트ip와 접근ip를 리턴하는 메소드 한개를 가진 간단한 Spring Boot 어플리케이션을 만들었습니다.
 
 ```java
@@ -77,7 +77,7 @@ curl -l localhost:8080/ip
 ```
 현재 인스턴스의 프라이빗 IPv4 주소가 hostIp에 찍혀있다면 성공입니다.
 
-## **Application Load Balancer 생성 / 적용하기**
+### **Application Load Balancer 생성 / 적용하기**
 프라이빗 인스턴스에 어플리케이션을 배포했지만 외부에서의 접근은 불가능한 상태입니다. 이제 로드밸런서를 생성하고 http 프로토콜로 접근 가능하도록 해보겠습니다.
 
 #### **대상그룹 생성하기**
@@ -158,5 +158,5 @@ server {
 
 `DNS 주소/ip` 로 접근했을때 위와같이 accessIp에는 내 ip가, hostIp에는 프라이빗 인스턴스의 IPv4 주소가 찍혀 나온다면 성공입니다. 만약 가용존별 프라이빗 서브넷을 구성하였다면 새로고침을 눌렀을때 hostIP가 계속 바뀌는지 확인해보세요.
 
-## **마치며**
+### **마치며**
 이번 포스팅까지 기본적인 서버 구축은 끝이 났습니다. 여기까지가 aws를 활용해 설계할 수 있는 가장 기본적인 형태의 아키텍처라고 생각되는데요, 다음 포스팅부터는 Jenkins와 Codedeploy를 활용하여 배포까지 자동화 해보도록 하겠습니다.

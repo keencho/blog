@@ -12,7 +12,7 @@ tags: [JPA, Spring Data JPA, QueryDSL]
 
 또한 QueryDSL을 사용하고자 한다면 이를 사용할 계층이 필요합니다. service 계층에 관련 메소드를 작성할 수도 있겠지만 설계 측면에서 봤을때 쿼리는 repository 계층에서 작성하는게 좋겠죠.
 
-## **Customizing Individual Repositories**  
+### **Customizing Individual Repositories**  
 개별 repository를 확장하고 필요한 쿼리를 작성하기 위해(Query DSL을 사용하기 위해) 새로운 커스텀 클래스가 필요합니다. 다행히 `Spring Data JPA` 공식문서에는 [관련 내용](https://docs.spring.io/spring-data/jpa/docs/current/reference/html/#repositories.single-repository-behavior)과 적용 방법이 자세히 적혀 있습니다.  
 
 커스텀 인터페이스를 만들고 해당 인터페이스를 구현하는 클래스를 만든 후에 기존 repository가 커스텀 인터페이스를 상속하게 하면 된다고 하네요.  
@@ -58,7 +58,7 @@ public interface CustomerRepository extends JpaRepository<Customer, UUID>, Custo
 
 > :warning: 공식 문서에 의하면 custom interface를 구현하는 클래스는 `Impl`을 접미사로 붙여야 한다고 나와 있습니다. @EnableJpaRepositories(repositoryImplementationPostfix = "MyPostfix") 어노테이션을 사용하면 접미사를 변경할 수도 있습니다.  
 
-# **QueryDSL을 모듈화하여 공통으로 사용하기**
+## **QueryDSL을 모듈화하여 공통으로 사용하기**
 QueryDSL을 사용한다면 뭔가 아쉽습니다. 동일한 형태의 인터페이스, 클래스를 repository마다 만들어서 보일러플레이트 코드가 늘어나기 때문입니다.  
 
 `Spring Data JPA`는 이때 사용할 수 있는 `QuerydslPredicateExecutor` 라는 인터페이스를 제공합니다.  
@@ -224,4 +224,4 @@ private void select() {
 }
 ```
 
-### **:memo: 전체 코드 및 테스트는 [링크](https://github.com/keencho/java-sandbox/tree/master/blog-example-code/spring-boot-custom-jpa-repository)에서 확인하실 수 있습니다.**
+#### **:memo: 전체 코드 및 테스트는 [링크](https://github.com/keencho/java-sandbox/tree/master/blog-example-code/spring-boot-custom-jpa-repository)에서 확인하실 수 있습니다.**

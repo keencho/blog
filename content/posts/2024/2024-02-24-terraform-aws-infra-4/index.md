@@ -14,7 +14,7 @@ tags: [AWS, ECS]
 6. [운영환경 (백엔드)](/posts/terraform-aws-infra-6)
 7. [마무리](/posts/terraform-aws-infra-7)
 
-# **Terraform으로 AWS ECS 무중단 배포 인프라 구성하기 - 4. 테스트 환경**
+## **Terraform으로 AWS ECS 무중단 배포 인프라 구성하기 - 4. 테스트 환경**
 이번 포스팅에서는 테스트 환경을 구성한다. 테스트 환경은 운영환경과는 다르게 백엔드, 프론트엔드, db가 모두 1개의 인스턴스에서 돌아가게 구성한다.
 
 당연히 실제 비즈니스 서비스의 경우 실제 운영환경과 동일하게 환경을 구성해야 겠지만 이 시리즈에서는 그렇게까지 하진 않는다. ec2, key-pair등과 같은 리소스도 Terraform으로 생성해보기 위함이다.
@@ -23,8 +23,8 @@ tags: [AWS, ECS]
 
 테스트 환경은 무중단 배포를 고려하지 않는다.
 
-## **리소스**
-### **1. Application Load Balancer**
+### **리소스**
+#### **1. Application Load Balancer**
 먼저 로드밸런서를 생성한다. 로드밸런서는 퍼블릭 서브넷을 가용영역으로 두어야 한다. 또한 80 포트와 443 포트를 개방하도록 하겠다.
 
 ```hcl
@@ -74,10 +74,10 @@ resource "aws_security_group" "app-alb-sg" {
 }
 ```
 
-### **2. EC2**
+#### **2. EC2**
 다음으로 EC2를 생성한다. 나는 가난한 개발자 이므로 프리티어를 사용할 것이다.
 
-#### **2.1 Key Pair**
+##### **2.1 Key Pair**
 키페어를 생성한다. [이 글](https://stackoverflow.com/a/49792833/13160032) 을 참고해 생성하였다. 다 만들었다면 output을 확인하여 파일을 생성해 추후 ssh 접속시 사용하면 된다.
 
 ```hcl
@@ -97,7 +97,7 @@ output "private_key" {
 }
 ```
 
-#### **2.2 Security Group & Elastic IP**
+##### **2.2 Security Group & Elastic IP**
 다음으론 보안그룹과 고정 IP를 생성한다. 원래대로라면 개발자 pc의 ip만 ssh 접속 허용해야겠으나 편의상 모든 트래픽을 허용하도록 하겠다. 이 인스턴스로 들어오는 http 포트는 80 포트를 사용할 것이며 로드밸런서 에서 라우팅되는 요청만 허용할 것이다. 따라서 ingress 부분의 security groups 값을 로드밸런서의 보안그룹 id로 지정한다.
 
 ```hcl
@@ -143,7 +143,7 @@ resource "aws_eip" "app-test-ec2-eip" {
 }
 ```
 
-#### **2.3 EC2**
+##### **2.3 EC2**
 준비가 되었으니 EC2를 생성한다. a 존에 있는 퍼블릭 서브넷에 생성될 것이며 프리티어로 사용이 가능한 t2.micro 타입을 선택했다. 기타 위 생성한 리소스들과 연결해준다.
 
 ```hcl
@@ -175,10 +175,10 @@ resource "aws_eip" "app-test-ec2-eip" {
 }
 ```
 
-### **3. Application Load Balancer - Target Group & Routing**
+#### **3. Application Load Balancer - Target Group & Routing**
 테스트 EC2가 존재하는 대상 그룹을 생성하고 테스트 도메인을 해당 대상그룹으로 라우팅한다.
 
-#### **3.1 Target Group**
+##### **3.1 Target Group**
 타겟 그룹을 생성한다. 80포트로 트래픽을 전송받을 것이며 `/alb/health-check` 경로로 상태검사를 진행할 것이다.
 
 ```hcl
@@ -197,7 +197,7 @@ resource "aws_lb_target_group" "app-test" {
 }
 ```
 
-#### **3.2 Listener**
+##### **3.2 Listener**
 로드밸런서 리스너를 생성한다. 80포트의 경우 443 포트로 리다이렉트 시킨다. 443 포트의 경우 앞서 AWS Certificate Manager 에서 생성한 ssl 인증서를 적용하고 대상그룹으로 트래픽을 포워딩한다.
 
 ```hcl
@@ -230,7 +230,7 @@ resource "aws_lb_listener" "app-alb-listener-https" {
 }
 ```
 
-#### **3.3 Target Register**
+##### **3.3 Target Register**
 테스트 인스턴스를 대상 인스턴스로 등록한다.
 
 ```hcl
@@ -241,7 +241,7 @@ resource "aws_lb_target_group_attachment" "app-test-attachment" {
 }
 ```
 
-#### **3.4 Listener Rule**
+##### **3.4 Listener Rule**
 로드밸런서 리스너 룰을 지정한다. 도메인이 `app-admin-test.keencho.com`, `app-user-test.keencho.com` 인 경우 테스트 인스턴스로 라우팅할 것이다.
 
 ```hcl
@@ -264,7 +264,7 @@ resource "aws_lb_listener_rule" "app-alb-test-rule" {
 
 > :warning: 이 단계에서는 대상 그룹에 등록된 대상의 상태가 Unhealthy로 표시될 것입니다. 이는 인스턴스 내부에서 세팅해주지 않았기 때문이며 다음에 바로 설정해 보도록 하겠습니다.
 
-### **4. Route 53 Record**
+#### **4. Route 53 Record**
 Route 53 에 레코드를 추가한다. 각 테스트 도메인으로 들어오는 트래픽이 alb로 향할수 있도록 설정할 것이다.
 
 ```hcl
@@ -295,7 +295,7 @@ resource "aws_route53_record" "app-user-test" {
 
 테스트 환경을 위해 AWS에서 설정해 줘야할 것은 끝났다. 나머지는 테스트 인스턴스에 직접 접속해서 진행해야 한다.
 
-### **5. EC2 설정**
+#### **5. EC2 설정**
 이제 인스턴스에 직접 들어와 여러가지 설정을 해줘야 한다.
 
 1. nginx 설치

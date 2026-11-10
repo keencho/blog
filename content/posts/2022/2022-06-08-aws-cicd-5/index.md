@@ -13,12 +13,12 @@ tags: [AWS, DevOps]
 5. **AWS 리소스 세팅**
 6. [CodeDeploy 연동 / 마무리](/posts/aws-cicd-6)  
 
-# **AWS 리소스 세팅**
+## **AWS 리소스 세팅**
 
-## **Auto Scaling 그룹 생성**
+### **Auto Scaling 그룹 생성**
 AWS 리소스 세팅 첫번째 단계로 Auto Scaling 그룹을 생성해 보도록 하겠습니다.
 
-### **템플릿 만들기**
+#### **템플릿 만들기**
 그룹을 생성하기 전에 템플릿을 먼저 만들어야 합니다. 기존의 인스턴스를 종료하고 새롭게 인스턴스를 띄우는 방식을 사용할 것이기 때문에 새롭게 인스턴스가 시작될때 사용될 템플릿입니다.
 
 EC2 콘솔 -> 인스턴스 -> 시작템플릿 -> 시작 템플릿 생성으로 이동하여 생성 화면으로 이동합니다. 이름은 임의로 지정합니다.
@@ -50,7 +50,7 @@ sudo service codedeploy-agent start
 
 > 위 스크립트에 문제가 발생하시면 `#!/bin/bash -xe` 에서 `-xe`를 빼고 진행해 보세요.
 
-### **Auto Scaling 그룹 생성**
+#### **Auto Scaling 그룹 생성**
 다음은 오토 스케일링 그룹을 생성해야 합니다.  EC2 콘솔 -> Auto Scaling -> Auto Scaling 그룹 -> 생성 으로 이동하여 그룹을 생성하겠습니다.
 
 ![auto-deploy-infra-7](./auto-deploy-infra-7.JPG)
@@ -69,7 +69,7 @@ sudo service codedeploy-agent start
 
 5단계, 6단계는 각각 알림, 태그로 필요하신 분들은 설정하시면 됩니다.
 
-### **결과 확인하기**
+#### **결과 확인하기**
 오토 스케일링 그룹이 잘 생성되었다면 인스턴스가 하나 생성되었을 것입니다. 인스턴스 콘솔로 이동하여 인스턴스가 생성되었는지 확인해 보도록 합시다.
 
 로드밸런서의 대상 그룹에도 생성된 인스턴스가 타겟으로 등록되어있는지 확인해 봅니다.  
@@ -78,16 +78,16 @@ sudo service codedeploy-agent start
 Health status가 unhealthy로 되어있습니다. 현재 단계에서는 정상적인 흐름입니다. 앞 포스팅에서 설명했다시피 로드밸런서가 대상 그룹의 health status를 검사하기 위해선 미리 지정해둔 경로의 response status code가 200이 떨어져야 합니다.
 하지만 우리가 방금 만든 템플릿은 nginx나 다른 웹서버등 로드밸런서의 80포트 요청에 응답할만한 무언가를 설치하지 않았기 때문입니다. 일단 정상이니 다음 단계로 넘어가도록 하겠습니다.
 
-## **CodeDeploy**
+### **CodeDeploy**
 무중단 배포는 AWS CodeDeploy를 사용하여 진행합니다. CodeDeploy에 대한 자세한 설명은 [이곳](https://docs.aws.amazon.com/ko_kr/codedeploy/latest/userguide/welcome.html) 에서 확인하실 수 있습니다.
 
-### **CodeDeploy 애플리케이션 생성**
+#### **CodeDeploy 애플리케이션 생성**
 다음은 CodeDeploy 애플리케이션을 생성해야 합니다. AWS 콘솔에서 CodeDeploy를 검색하여 진입한 후에 좌측 메뉴의 배포 -> 애플리케이션으로 이동후 우측 상단의 `애플리케이션 생성` 버튼을 눌러 애플리케이션을 생성합니다.
 
 컴퓨팅 플랫폼의 경우 EC2를 사용합니다. 람다나 ECS 컨테이너도 사용하실 수 있습니다.  
 ![auto-deploy-infra-1](./auto-deploy-infra-1.PNG)
 
-### **IAM 역할 생성**
+#### **IAM 역할 생성**
 다음은 배포 그룹을 생성해야 합니다. 배포 그룹을 생성하기 전에 선행되어야할 작업이 몇가지 있는데요, 먼저 IAM 역할을 생성하도록 하겠습니다.
 
 AWS 콘솔에서 IAM을 검색해 IAM 관리 콘솔로 이동합니다. 그 후 CodeDeploy 서비스를 사용할 수 있도록 권한을 부여하고 역할을 생성합니다.  
@@ -113,7 +113,7 @@ AWS 콘솔에서 IAM을 검색해 IAM 관리 콘솔로 이동합니다. 그 후 
 }
 ```
 
-### **배포 그룹 생성**
+#### **배포 그룹 생성**
 생성한 애플리케이션의 상세화면으로 이동한 후 배포 그룹 생성 페이지로 이동합니다.  
 ![auto-deploy-infra-12](./auto-deploy-infra-12.JPG)
 

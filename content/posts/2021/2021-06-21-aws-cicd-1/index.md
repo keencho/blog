@@ -13,13 +13,13 @@ tags: [AWS, DevOps]
 5. [AWS 리소스 세팅](/posts/aws-cicd-5)
 6. [CodeDeploy 연동 / 마무리](/posts/aws-cicd-6)
 
-# **개요**
+## **개요**
 AWS를 이용하여 가장 기본적인 형태의 인프라를 구축하고 `GithubAction - CodeDeploy` 를 이용하여 CI/CD 서버를 구축해보도록 하겠습니다.
 
 - AWS의 기본적인 개념은 숙지하고 있다는 가정하에 진행됩니다.
 - 블루 - 그린 배포 방식을 사용합니다.
 
-## **서버 구성**
+### **서버 구성**
 최종적으로 구축할 웹서버 아키텍처는 다음과 같습니다. ~~(**직접 그린거라 삐뚤삐뚤합니다 ㅠㅠ...**)~~
 
 ![final-architecture](./final-architecture.PNG)
@@ -28,7 +28,7 @@ AWS를 이용하여 가장 기본적인 형태의 인프라를 구축하고 `Git
 - `Auto Scailing group` 에 포함된 인스턴스는 많은 트래픽이 발생합니다. (ex. 대고객 사이트, 외부 연동 api 서버)
 - `Auto Scailing group` 내부 인스턴스의 내부 구조는 웹서버로 `Nginx` 를 두고 location 설정을 바탕으로 `Spring-Boot Applicaton` 에 접근합니다. (ex. /api - api 서버로)
 
-## **배포 구성**
+### **배포 구성**
 자동화 배포에 사용할 배포 구조는 다음과 같습니다.
 
 ![deploy](./deploy.PNG)

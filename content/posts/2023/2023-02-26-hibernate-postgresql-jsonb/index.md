@@ -12,7 +12,7 @@ Hibernate6 부터는 이러한 기능을 표준으로 제공하기 시작하여 
 
 > :warning: 아래 내용은 Hibernate6 이상의 버전을 필요로 합니다. Hibernate6 이전 버전을 사용하는 경우 (Hibernate 5.x, Spring Boot 2.x, Spring Data JPA 2.x...) 그냥 `hypersistence-utils`를 사용하시길 권장드립니다.
 
-## **@JdbcTypeCode**
+### **@JdbcTypeCode**
 `@JdbcTypeCode` 어노테이션을 필드에 붙여주기만 하면 Hibernate는 RDB의 종류에 따라 자동으로 JSON 컬럼을 정의합니다. PostgreSQL 경우엔 JSONB 타입이 되겠죠. 런타임에는 직렬화 / 역직렬화 할 수 있는 JSON 라이브러리를 사용하여 값을 컨트롤 합니다.
 
 ```java
@@ -53,7 +53,7 @@ public class Order {
     )
 ```
 
-## **UserType 인터페이스 구현**
+### **UserType 인터페이스 구현**
 `UserType` 인터페이스를 통해 직접 타입을 구현하는 방법도 있습니다. `UserType` 인터페이스는 Hibernate6 버전 이전에도 존재했었습니다. 다만 Hibernate6 버전으로 올라오면서 이 인터페이스는 제네릭을 사용하도록 변경되었습니다.
 
 ![hibernate5-usertype](./hibernate5-usertype.JPG)
@@ -128,7 +128,7 @@ public class ShippingInfoJsonType implements UserType<ShippingInfo> {
 }
 ```
 
-## **JSONB 컬럼의 필드 업데이트**
+### **JSONB 컬럼의 필드 업데이트**
 setter 메소드를 사용해 JSONB 컬럼의 필드값을 변경하면 트랜잭션 종료 이후 Hibernate에 의해 값이 업데이트 됩니다.
 
 ```java
@@ -166,7 +166,7 @@ sql 로그는 다음과 같습니다.
 
 id가 1인 엔티티를 찾고 `받는쪽 배송정보` JSONB 컬럼의 번호를 `01000001111` 로 변경하였습니다. 정상적으로 잘 업데이트 된 것을 확인할 수 있습니다.
 
-## **JSONB 조건검색**
+### **JSONB 조건검색**
 그렇다면 `받는쪽 배송정보` JSONB 컬럼의 성이 `김` 으로 시작하는 row를 검색하려면 어떻게 해야 할까요? sql로 표현하면 다음과 같습니다.
 
 ```sql
@@ -175,7 +175,7 @@ from order_new o
 where o.frominfo ->> 'name' like '김%';
 ```
 
-### **Hibernate < 6.2**
+#### **Hibernate < 6.2**
 Hibernate 6.2 이전 버전에서는 아쉽게도 JPQL로 위 sql을 표현할 수 없습니다. 어쩔수 없이 `createNativeQuery(query)` 메소드를 사용할 수 밖에 없습니다.
 
 ```java
@@ -195,7 +195,7 @@ entityManager.createNativeQuery("SELECT * FROM order_new o WHERE o.frominfo ->> 
 [TRACE] [main] bind - binding parameter [1] as [VARCHAR] - [김%]
 ```
 
-### **Hibernate >= 6.2**
+#### **Hibernate >= 6.2**
 Hibernate 6.2 버전에서 드디어 JPQL로 JSONB 컬럼을 탐색할 수 있게 되었습니다. 정확히는 [`Embeddable` 객체(클래스)를 JSON 컬럼으로써 매핑](https://in.relation.to/2023/02/13/hibernate-orm-62-composite-aggregates/) 할수 있게 되었습니다.
 
 ```java
@@ -238,7 +238,7 @@ public void jsonbJPQLCondition() {
 
 테스트 코드와 sql 로그입니다. Hibernate가 JPQL을 올바른 sql로 변환했네요.
 
-### **QueryDSL**
+#### **QueryDSL**
 JPQL로 JSON 컬럼을 탐색할 수 있다는 것은 QueryDSL에서도 사용할 수 있게 되었다는 것을 의미합니다.
 
 이번에는 QueryDSL로 조금 복잡한 쿼리를 구현해 보도록 하겠습니다. 조건은 다음과 같습니다.
@@ -354,7 +354,7 @@ public void jsonbQueryDSLCondition() {
 
 sql 로그와 결과를 확인합니다. 이번에도 JPQL이 올바른 sql로 변환된 것을 확인할 수 있습니다.
 
-# **결론**
+## **결론**
 Hibernate6 버전부터 쉽게 JSON 타입의 컬럼을 다를 수 있게 되었습니다. 뿐만 아니라 6.2 버전부터는 조회 또한 JPQL로 표현할 수 있게 되었는데요,
 이를 통해 만약 QueryDSL을 사용한다면 `querydsl-sql`, `blaze-persistence` 를 사용하지 않고 `querydsl-jpa`만으로 type-safe한 쿼리를 작성할 수 있게 되었습니다.
 

@@ -14,14 +14,14 @@ tags: [AWS, ECS]
 6. [운영환경 (백엔드)](/posts/terraform-aws-infra-6)
 7. [마무리](/posts/terraform-aws-infra-7)
 
-# **Terraform으로 AWS 무중단 배포 인프라 구성하기 - 1. 개요**
+## **Terraform으로 AWS 무중단 배포 인프라 구성하기 - 1. 개요**
 최근 오픈하는 시스템을 ECS 기반 인프라로 변경하였다. 도입시 겪었던 시행착오나 기타 문제를 다시한번 정리하며 무중단 배포 인프라를 구성해본다.
 
 AWS Web Console로도 인프라 구성이 가능히지만 코드를 사용해 인프라를 관리하기 위해 IaC중 하나인 [Terraform](https://www.terraform.io/) 을 사용한다. Terraform이 무엇인지는 자세하게 설명하진 않겠으나 필요시 간단하게 짚고 넘어가도록 한다.
 
 [이 시리즈](https://blog.keencho.com/posts/aws-cicd-1/) 와는 다르게 테스트 환경 구축, 운영 환경의 경우 ECS Fargate 사용, Terraform 사용, CloudFront 사용 등 실제 서비스에 적용할 수 있도록 구성해볼 것이다.
 
-## **인프라 구성**
+### **인프라 구성**
 구성할 인프라를 간단하게 설명하면 다음과 같다. 도메인은 내가 보유중인 keencho.com 도메인을 사용한다.
 
 1. Route 53은 다음 도메인의 트래픽을 각각 라우팅한다.
@@ -46,12 +46,12 @@ AWS Web Console로도 인프라 구성이 가능히지만 코드를 사용해 �
 
 프론트단은 React, 백단은 SpringBoot를 사용하며 DB는 PostgreSQL을 사용한다.
 
-## **인프라 다이어그램**
+### **인프라 다이어그램**
 위 구성을 다이어그램으로 표현해보면 다음과 같다.
 
 ![서버구성도](./structure.png)
 
-## **기타**
+### **기타**
 이 시리즈에서는 `Terraform`, `AWS CLI` 가 무엇인지 등은 설명하지 않는다.
 ```hcl
 terraform apply

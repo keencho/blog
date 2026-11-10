@@ -44,14 +44,14 @@ public class SoccerTeamListeners{
 
 ```
 
-# JPA EntityListeners Dependency Injection
+## JPA EntityListeners Dependency Injection
 위의 예제 코드는 잘못된 코드입니다. `EntityListeners`로 지정한 클래스에서 의존성 주입이 필요해 `SoccerTeamRepository`를 주입하였지만, 정작 prePersist 메소드 수행시 soccerTeamRepository에는 null이 할당되어있을 것입니다. null이 할당되어 있으니 당연히 메소드 호출시 `NullPointerException` 이 발생합니다.  
 
 에러가 발생하는 이유는 `EntityListeners`는 `Spring IOC` 에서 관리되는 클래스가 아니기 때문입니다. 정확히는 `EntityListeners`에 등록되는 클래스에 `@Component` 어노테이션을 붙이면 bean으로 등록되긴 하지만 JPA 관련 프로퍼티들이 bean으로 등록되고 난 후에 Spring 관련 빈들이 등록되기 때문입니다.  
 
 따라서 Spring bean이 모두 등록된 후 `EntityListeners`로 지정한 클래스를 모두 찾아 의존성 주입을 하면 되겠네요. 인터넷을 검색해보면 많은 해결방법들이 있습니다. 저는 제 나름대로의 방법을 소개하고자 합니다.  
 
-## Example Code  
+### Example Code  
 ```java
 @Entity
 @Data

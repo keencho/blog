@@ -6,14 +6,14 @@ categories: [JOOQ]
 tags: [JOOQ, Spring Boot]
 ---
 
-## **JOOQ란?**
+### **JOOQ란?**
 JOOQ(Java Oriented Querying)는 Java를 사용하여 안전한 SQL 쿼리를 작성할 수 있도록 하는 데이터베이스 쿼리 프레임워크 입니다. 개발자가 SQL 쿼리를 보다 직관적이고 자연스럽게 작성할 수 있도록 하며 type-safe한 API를 제공합니다. 이를 통해 컴파일시 오류를 발견 / 수정할 수 있습니다.
 
 JOOQ는 PostgreSQL, Oracle, MySQL과 같은 관계형 데이터베이스들을 지원합니다. NoSQL은 기본적으로 지원하지 않습니다. 일부 제한적인 기능을 제공하긴 하는데 그럴빠에야 `Spring Data MongoDB` 와 같이 해당 영역에 특화된 프레임워크를 사용하는게 좋습니다.
 
 JOOQ는 단순 쿼리 작업 외에도 데이터베이스 스키마 생성, 코드 생성 및 기타 데이터베이스 관련 작업을 지원하므로 Java에서 데이터베이스 기반 애플리케이션을 구축하는데 유용한 도구입니다.
 
-## **JOOQ vs Querydsl**
+### **JOOQ vs Querydsl**
 JOOQ과 Querydsl은 개발자가 type-safe한 SQL 쿼리를 작성할 수 있도록 한다는 공통점이 있습니다. 그러나 두 프레임워크 사이에는 몇가지 차이점이 있습니다.
 
 1. DSL 구문
@@ -26,7 +26,7 @@ JOOQ과 Querydsl은 개발자가 type-safe한 SQL 쿼리를 작성할 수 있도
    - JOOQ는 데이터베이스 스키마를 기반으로 Java 클래스를 생성합니다.
    - QueryDSL은 자바 코드를 바탕으로 Java 클래스를 생성합니다.
 
-## **그래서 둘중 무엇을 선택해야 하는가?**
+### **그래서 둘중 무엇을 선택해야 하는가?**
 사실 개인적인 생각으론 JOOQ와 Querydsl를 비교하는건 잘못됐다고 생각합니다. 어떤 Persistence Framework를 선택했느냐(`ORM`이냐 `SQL`이냐) 에 따라 달라지기 때문이죠.
 
 스프링 기반 웹 어플리케이션을 개발할때 관계형 데이터베이스를 사용한다면 Persistence Framework로 ORM 혹은 SQL Mapper를 선택합니다. ORM의 경우 `Hibernate - Spring Data JPA - Querydsl`조합을 사용하고 SQL Mapper의 경우 `MyBatis`를 사용합니다.
@@ -34,10 +34,10 @@ SQL Mapper 를 선택했다면 JOOQ는 MyBatis 대신 사용할 수 있는 프�
 
 따라서 만약 개발중인 어플리케이션이 MyBatis를 사용하고 type-safe하게 쿼리를 작성할 수 있는 프레임워크를 찾고있다면 JOOQ는 완벽한 프레임워크라고 볼 수 있습니다. ORM을 사용한다면 비즈니스 로직에는 `Hibernate - Spring Data JPA - Querydsl`조합을 사용하고 통계성 데이터나 대용량 배치 작업을 할때, 혹은 native query가 필요할 때 JOOQ를 사용하는 것이 좋다고 생각합니다.
 
-# **Spring Boot에서 JOOQ 사용하기**
+## **Spring Boot에서 JOOQ 사용하기**
 Spring Boot 에서 JOOQ를 사용하는 방법에 대해 알아보도록 하겠습니다.
 
-## **1.환경설정**
+### **1.환경설정**
 빌드 도구는 maven을 사용하며 db는 PostgreSQL을 사용합니다.
 ```xml
 <dependencies>
@@ -172,8 +172,8 @@ logging.level.org.jooq.tools.LoggerListener=DEBUG
 
 ![generate-source-1](./generate-source-1.JPG)
 
-## **2. 코드작성**
-### **1. 전처리**
+### **2. 코드작성**
+#### **1. 전처리**
 테스트 수행 전에 테이블을 초기화하고 새로운 값을 넣는 전처리 코드입니다.
 
 ```java
@@ -248,7 +248,7 @@ public void setUp() {
 
 ![jooq-auto-configuration](./jooq-auto-configuration.JPG)
 
-### **2. 조회후 custom class로 결과 반환**
+#### **2. 조회후 custom class로 결과 반환**
 
 ```sql
 SELECT b.title, concat(a.first_name, a.last_name)
@@ -305,7 +305,7 @@ org.jooq.tools.LoggerListener - Fetched row(s)           : 4
 
 결과가 잘 반환된 것을 확인할 수 있습니다. alias로 필드명을 지정하면 해당 필드에 값이 할당되는 것까지 마음에 드네요.
 
-### **3. update**
+#### **3. update**
 ```sql
 UPDATE author
 SET first_name = '성'
@@ -355,7 +355,7 @@ org.jooq.tools.LoggerListener - Fetched row(s)           : 2
 
 `author` 테이블의 id가 1 혹은 2인 row의 first_name을 '성' 으로 변경하는 쿼리를 수행하였고 작업이 정상적으로 수행되었습니다.
 
-### **4. delete**
+#### **4. delete**
 ```sql
 DELETE
 FROM author
@@ -406,7 +406,7 @@ org.jooq.tools.LoggerListener - Fetched row(s)           : 5 (or more)
 
 `author` 테이블의 id가 1인 row를 삭제하였고 `author`, `author_book` 테이블의 row가 삭제된것을 확인할 수 있습니다.
 
-### **번외(DAOImpl)**
+#### **번외(DAOImpl)**
 JOOQ는 중복되는 불필요한 코드를 줄이기 위해 생성된 [DAO에 대한 기본 구현체](https://www.jooq.org/javadoc/latest/org.jooq/org/jooq/impl/DAOImpl.html)들을 제공합니다. 스프링 환경에서는 `AbstractSpringDAOImpl` 클래스를 상속한 DAO를 주입받아 사용할 수 있으며 이 DAO 클래스는 `jooq-codegen-maven` 플러그인에 설정값을 추가하는것으로 쉽게 생성할 수 있습니다.
 
 ```xml
@@ -467,7 +467,7 @@ void delete() {
 
 확실히 코드가 줄긴 했습니다. 다만 그냥 `dslContext`를 사용하는 것에 비해 많은 기능(메소드)들이 제거되어 있습니다. 따라서 간단한 쿼리정도에만 사용하고 나머지는 `dslContext`를 그대로 사용하는게 좋아 보입니다.
 
-# **결론**
+## **결론**
 JOOQ에 대해 살펴 보았습니다. 위에서 살펴본 예제는 정말 간단한 CRUD만 테스트 해본 것으로 실제 JOOQ는 보다 많은 DB의 기능을 지원합니다.
 또한 문서가 매우 잘되어 있어서 처음 시작하시는 분들도 최소한의 삽질로 사용해 보실 수 있을것 같습니다. 만약 ORM을 사용하지 않고 SQL Mapper 기반의 어플리케이션을 개발중이시거나 기존의 Querydsl에 익숙하신 분들이라면 JOOQ를 사용해 보시는게 어떨까요?
 

@@ -14,10 +14,10 @@ tags: [AWS, ECS]
 6. [운영환경 (백엔드)](/posts/terraform-aws-infra-6)
 7. [마무리](/posts/terraform-aws-infra-7)
 
-# **Terraform으로 AWS ECS 무중단 배포 인프라 구성하기 - 2. 기초**
+## **Terraform으로 AWS ECS 무중단 배포 인프라 구성하기 - 2. 기초**
 앞서 설명했든 프론트단은 React, 백단은 Spring-Boot를 사용한다.
 
-## **앱**
+### **앱**
 이 포스팅에서 앱을 구성하는 방법까지 포함하지는 않는다. [이 리포지토리](https://github.com/keencho/aws-infra-terraform-example) 에 필요한 코드는 모두 존재하니 필요한 분들은 참고하시기 바란다.
 
 전체적인 구성 은 다음과 같다.
@@ -33,7 +33,7 @@ tags: [AWS, ECS]
 
 만약 프론트 경로에 `/api/account/list`와 같은 경로가 존재하면 CloudFront는 요청을 ALB로 전송할 것이므로 의도하지 않은 동작이 될 것이다. 이를 염두하고 코드를 작성했다.
 
-## **Terraform & AWS CLI**
+### **Terraform & AWS CLI**
 - [이곳](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli) 을 참고하여 `terraform`을 설치한다.
 - [이곳](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) 을 참고하여 `AWS CLI`를 설치한다.
 - [이곳](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-quickstart.html#getting-started-quickstart-new) 을 참고하여 `AWS CLI`를 설정한다.

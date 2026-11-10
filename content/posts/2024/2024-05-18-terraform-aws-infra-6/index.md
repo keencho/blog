@@ -14,11 +14,11 @@ tags: [AWS, ECS]
 6. **운영환경 (백엔드)**
 7. [마무리](/posts/terraform-aws-infra-7)
 
-# **Terraform으로 AWS ECS 무중단 배포 인프라 구성하기 - 6. 운영환경 (백엔드)**
+## **Terraform으로 AWS ECS 무중단 배포 인프라 구성하기 - 6. 운영환경 (백엔드)**
 백엔드 운영환경을 구축한다.
 
-## **리소스**
-### **1. RDS**
+### **리소스**
+#### **1. RDS**
 RDS를 생성한다.
 
 ```hcl
@@ -80,7 +80,7 @@ rds가 생성되었다면 db 접속하여 유저, database 등 앱에 필요한 
 
 > :warning: 편의상 publicly_accessible, subnet group, security group을 퍼블릭으로 설정했다. 당연히 특정 bastion 어플리케이션환경 혹은 bastion host 에서만 접근 가능하게 해야한다.
 
-### **2. EFS**
+#### **2. EFS**
 로그를 저장할 EFS 저장소를 생성한다. 2049 포트를 열어야 하며 네트워크상 프라이빗 서브넷에 위치하도록 하였다.
 
 ```hcl
@@ -127,10 +127,10 @@ resource "aws_efs_mount_target" "app-efs-target" {
 }
 ```
 
-### **3. ECS**
+#### **3. ECS**
 ECS와 관련된 리소스들을 설정한다.
 
-#### **1. ECR**
+##### **1. ECR**
 ECR을 생성한다.
 
 ```hcl
@@ -146,7 +146,7 @@ resource "aws_ecr_repository" "app-ecr" {
 
 원할한 테스트를 위해 이 단계에서 ECR 리포지토리에 이미지를 푸쉬해두자. 나의 경우 `nginx-latet`, `admin-latest`, `user-latest` 3개의 이미지를 푸쉬해 두었다.
 
-#### **2. Task Definition**
+##### **2. Task Definition**
 ```hcl
 resource "aws_iam_role" "app-ecs-task-execution-role" {
   name = "ecsTaskExecutionRole"
@@ -416,7 +416,7 @@ resource "aws_ecs_task_definition" "app-definition" {
 
 > :warning: ignore_changes 에 container_definitions 를 추가한다. 아무 수정 없어도 항상 terraform이 'force replacement' 를 시도하기 때문이다. 아마 'container_definitions'가 JSON 형식으로 정의되기 때문에 필드 순서나 미세한 차이로 인해 변경이 감지될 수 있어서 그런것 같다.
 
-#### **2. Cluster & Service**
+##### **2. Cluster & Service**
 클러스터를 생성한다.
 
 ```hcl
@@ -543,7 +543,7 @@ resource "aws_ecs_service" "app-ecs-service" {
 
 > :warning: 배포 옵션을 CodeDeploy로 지정했기 때문에 문제가 발생해도 서비스 업데이트를 할 수 없다. (현 시점에는 CodeDeploy와 연결되어 있지 않기 때문) 문제를 해결하려면 서비스를 지우고 다시 생성하는 수 밖에 없다.
 
-#### **3. AutoScaling**
+##### **3. AutoScaling**
 ```hcl
 resource "aws_iam_role" "app-ecs-autoscale" {
   name = "app-ecs-autoscale-iam-role"
@@ -623,7 +623,7 @@ resource "aws_cloudwatch_metric_alarm" "app-ecs-cpu-high" {
 
 ![autoscaling](./autoscaling.png)
 
-### **4. CloudFront 수정**
+#### **4. CloudFront 수정**
 앞서 운영환경 - 프론트를 구성할때 `CloudFront`로 들어오는 모든 트래픽은 S3로 전달되게 구성하였다. 맨 처음 개요에서 설명했듯 `/api/**` 경로로 시작하는 요청은 `Application Load Balancer`로 전달되도록 수정해야 한다.
 
 ```hcl
@@ -721,7 +721,7 @@ resource "aws_cloudfront_distribution" "admin-distribution" {
 
 글에는 관리자 수정본만 작성한다. `Application Load Balancer` 원본을 추가하였고 `/api/*` 경로 패턴은 로드밸런서로 라우팅 될 수 있도록 동작을 수정하였다.
 
-### **5. CodeDeploy**
+#### **5. CodeDeploy**
 Blue / Green 배포를 위한 `CodeDeploy` 관련 리소스를 생성한다.
 
 ```hcl
@@ -812,7 +812,7 @@ resource "aws_codedeploy_deployment_group" "app-deploy-group" {
 - 배포그룹 생성
 - 로드밸런서 지정 (Blue / Green 배포를 위해 앞에서 생성한 타겟그룹 1, 2 지정)
 
-### **6. Github Actions 배포 스크립트 작성**
+#### **6. Github Actions 배포 스크립트 작성**
 내가 사용한 Dockerfile이다.
 
 ```Dockerfile

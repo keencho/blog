@@ -11,7 +11,7 @@ tags: [Java, JPA, QueryDSL]
 > java17, maven 을 사용합니다.  
 
 
-## **1. @QueryProjection 으로 생성되는 클래스 분석**  
+### **1. @QueryProjection 으로 생성되는 클래스 분석**  
 클래스를 프로젝션 타입으로 사용하기 위해 우리는 클래스 생성자에 @QueryProjection 어노테이션을 붙이고 Q 클래스를 생성합니다. 생성되는 Q 클래스는 다음과 같습니다.  
 
 ```java
@@ -42,7 +42,7 @@ public class QCustomerDTO extends ConstructorExpression<CustomerDTO> {
 
 생성자와 메소드를 통해 어떻게 생성자를 통해 조회 결과를 반환 받을수 있는지 확인할 수 있습니다.  
 
-## **2. 새로운 Expression 클래스 만들기**  
+### **2. 새로운 Expression 클래스 만들기**  
 위에서 살펴본 `ConstructorExpression` 은 어디까지나 클래스의 모든 필드를 매개변수로 갖는 생성자를 위한 조회 방식이기 때문에 빌더패턴을 사용할 수 없습니다. `FactoryExpressionBase` 클래스를 상속하는 새로운 프로젝션 클래스를 만드는게 낫겠네요.  
 
 ```java
@@ -95,7 +95,7 @@ public T newInstance(Object... a) {
 제가 위에서 순서를 보장하는 `LinkedHashMap`을 사용했던 것은 위와같은 이유 때문입니다. 물론 애초에 이 클래스가 생성되는 시점에도 순서가 보장된 map을 파라미터로 넘겨야 합니다. 
 메소드에 넘어오는 값이 순서를 보장하기 때문에 클래스의 필드정보를 담고 있는 map 객체의 요소가 반환받을 클래스의 필드 선언 순서와 동일하다면 문제없이 반환받을 클래스에 값을 저장하고 넘겨받을 수 있겠죠.  
 
-## **3. record를 반환 받을 수 있는 Expression 만들기**  
+### **3. record를 반환 받을 수 있는 Expression 만들기**  
 위에서 만든 Expression 클래스에는 문제가 하나 있습니다. 빈 생성자를 만들고 그 이후에 값을 세팅하는 방식이기 때문에 빈 생성자가 존재할 수 없는 `record` 타입의 클래스는 사용할 수 없습니다.  
 
 이를 위해 `record` 클래스 에 사용할 Expression 클래스는 따로 만들도록 하겠습니다.
@@ -161,7 +161,7 @@ public class KcRecordExpression<T extends Record> extends KcExpression<T> {
 
 둘째로 사용할 생성자가 명확해야 합니다. `record` 클래스 내에도 생성자는 여러개 존재할 수 있습니다. 그러나 여기서 사용할 생성자는 자바가 기본으로 만들어주는 모든 변수를 인수로 갖는 생성자여야 합니다. 따라서 값의 타입과 매개변수의 타입, 생성자 매개변수의 숫자를 검증하여 생성자의 조건과 일치하는 단 하나의 생성자만을 사용하도록 하였습니다.  
 
-## **4. AnnotationProcessor 만들기**  
+### **4. AnnotationProcessor 만들기**  
 커스텀 어노테이션을 만들고 해당 어노테이션이 붙어있는 클래스를 위에서 만든 프로젝션 클래스를 상속하는 클래스로써 새롭게 만들기 위해 AnnotationProcessor를 만들어야 합니다.  
 
 첫째로 클래스 위에 붙일 어노테이션 입니다.  
@@ -197,7 +197,7 @@ public @interface KcQueryProjection {
 clean install -DskipTests
 ```
 
-## **5. 테스트**
+### **5. 테스트**
 이제 새로운 프로젝트를 하나 만들고 위에서 만든 작업물을 테스트해 보도록 하겠습니다.  
 
 배포된 프로젝트와 `querydsl-apt`를 의존성에 추가하고 `maven compiler plugin`을 추가하고 annotationProcessor를 등록합니다.  
@@ -287,6 +287,6 @@ for (var i = 0; i < list.size(); i ++) {
 }
 ```  
 
-# **코드 확인** 
+## **코드 확인** 
 전체 코드는 [이곳](https://github.com/keencho/java-sandbox/tree/master/blog-example-code/querydsl-builder-projection) 에서 확인하실 수 있습니다.
 

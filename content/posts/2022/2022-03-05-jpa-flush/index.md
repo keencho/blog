@@ -14,10 +14,10 @@ tags: [JPA, Hibenate]
 
 영속성 컨텍스트에 있는 엔티티를 지우고 db에 저장하는 개념이 아니라 영속성 컨텍스트의 변경 내용을 db와 동기화하는 것이 플러시 임을 잊지 마세요.
 
-# Flush Mode in JPA & Hibernate
+## Flush Mode in JPA & Hibernate
 JPA는 AUTO, COMMIT 2개의 플러시 모드를 지원하고 Hibernate는 AUTO, COMMIT, ALWAYS, MANUAL 4개의 플러시 모드를 지원합니다.
 
-## AUTO (JPA & Hibernate)
+### AUTO (JPA & Hibernate)
 JPA 명세는 FlushModeType.AUTO 를 기본 타입으로 정의합니다. AUTO는 다음 2가지 상황에서 영속성 컨텍스트를 플러시 합니다.
 
 - 트랜잭션이 커밋되기 이전
@@ -81,7 +81,7 @@ void flushTest() {
 
 만약 네이티브 SQL 쿼리를 사용한다면 조금 더 복잡해집니다. 하이버네이트는 JPQL이 아닌 네이티브 SQL 쿼리가 사용하는 테이블을 판별할 수 없기 때문에, 각 네이티브 쿼리의 대상을 만들어야 합니다. 그렇지 않으면 영속성 컨텍스트를 플러시해야 하는지 여부를 결정할 수 없게 됩니다.
 
-## COMMIT (JPA & Hibernate)
+### COMMIT (JPA & Hibernate)
 플러시 타입 COMMIT은 트랜잭션을 커밋하기 전에 플러시가 필요하지만 쿼리를 실행하기 전에 수행해야할 작업을 정의하지 않습니다. 하이버네이트 5, 6 에서는 아무 쿼리나 수행하는 것만으로는 보류중인 수정사항을 플러시하지 않습니다. 간단히 말해 flush()를 직접 호출하거나 트랜잭션이 커밋되는 경우에만 플러시 됩니다.
 
 ```java
@@ -113,7 +113,7 @@ void flushCOMMIT() {
 
 > 참고로 AUTO, COMMIT 모드의 경우 위의 예제처럼 'entityManager.setFlushMode(FlushModeType.COMMIT);' 형식으로 모드를 지정할 수 있습니다.
 
-## ALWAYS (Hibernate)
+### ALWAYS (Hibernate)
 ALWAYS 모드는 하이버네이트 명세에만 존재하기 때문에 만약 Spring Data JPA를 사용한다면 사용할수 없는 모드입니다. 이 모드는 하이버네이트에게 쿼리를 실행하기 전에 영속성 컨텍스트를 플러시하라고 지시합니다. 이 모드를 사용한다면, 하이버네이트는 플러시가 필요한지 여부를 확인하지 않고 모든 유형의 쿼리를 동일한 방식으로 처리합니다.
 
 ```java
@@ -142,7 +142,7 @@ void flushALWAYS() {
 
 예제 코드입니다. `SoccerTeam` 조회 쿼리의 플러시 모드를 ALWAYS로 설정하였습니다. 예제를 실행시켜보면 `SoccerTeam`은 `SoccerPlayer`의 존재를 모름에도 불구하고 플러시 모드를 ALWAYS로 세팅하였기 때문에 select 쿼리가 날라가기 전에 insert 쿼리가 수행되는것을 확인할 수 있습니다. 테스트 또한 정상적으로 통과됩니다.
 
-## MANUAL (Hibernate)
+### MANUAL (Hibernate)
 마지막으로 MANUAL 모드입니다. MANUAL은 ALWAYS와 마찬가지로 하이버네이트 스펙에서만 지원하는 모드입니다. 이 모드는 모든 자동 플러시가 비활성화되고 개발자가 명시적으로 플러시 코드를 작성해야 플러시가 동작합니다.
 
 ```java
@@ -170,7 +170,7 @@ void flushMANUAL() {
 
 예제 코드입니다. `SoccerPlayer` 엔티티를 저장하는 코드인데요, 한번 실행시켜 본 후에  `session.flush();` 코드를 제거하고 다시 실행시켜 보세요. 플러시를 명시적으로 작성하지 않았기 때문에 플러시가 일어나지 않아 테스트는 실패하게 됩니다.
 
-# 결론
+## 결론
 오늘은 JPA & Hibernate의 4가지 플러시 모드를 사펴보았습니다. 개인적으로는 Spring Data JPA가 MANUAL 모드를 지원하지 않아 조금 아쉽습니다. Spring Data JPA가 나오기 이전 Hibernate / Session 으로 이리저리 놀았던 때에는 비즈니스 로직에 따라 세세하게 설정할수 있었던 점이 좋았던것 같습니다.
 
 그렇다고 이제와서 Spring Data JPA를 쓰지 않기엔 너무 편리한것도 사실입니다. 그런날이 올지는 모르겠지만 JPA 명세에 하이버네이트의 스펙이 추가되었으면 좋겠네요.

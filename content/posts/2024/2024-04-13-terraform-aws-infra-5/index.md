@@ -14,11 +14,11 @@ tags: [AWS, ECS]
 6. [운영환경 (백엔드)](/posts/terraform-aws-infra-6)
 7. [마무리](/posts/terraform-aws-infra-7)
 
-# **Terraform으로 AWS ECS 무중단 배포 인프라 구성하기 - 5. 운영환경 (프론트)**
+## **Terraform으로 AWS ECS 무중단 배포 인프라 구성하기 - 5. 운영환경 (프론트)**
 프론트 운영환경을 구축한다.
 
-## **리소스**
-### **1. S3 버킷**
+### **리소스**
+#### **1. S3 버킷**
 먼저 S3 버킷을 생성한다.
 
 ```hcl
@@ -65,7 +65,7 @@ resource "aws_s3_object" "app-prod-react-user" {
 
 이 상태에서 버킷을 퍼블릭 액세스로 열어버리고 주소로 접근하면 웹 페이지가 뜬다. 그러나 앞단에 `CloudFront`를 두어 그곳에서 s3로 라우팅할 것이기 때문에 넘어간다.
 
-### **2. CloudFront**
+#### **2. CloudFront**
 ```hcl
 resource "aws_cloudfront_origin_access_control" "admin-front" {
   name                              = "admin-front"
@@ -194,7 +194,7 @@ resource "aws_s3_bucket_policy" "allow-from-cloudfront-policy" {
 
 ![prod front user](./prod-front2.png)
 
-### **3. Github Actions 배포 스크립트 작성**
+#### **3. Github Actions 배포 스크립트 작성**
 react 프로젝트 구조이다. root 폴더에서 `npm install` 명령어를 수행한 후 각 `admin`, `user` 폴더에서 빌드를 수행해야 한다.
 
 ![react-tree](./react-tree.png)

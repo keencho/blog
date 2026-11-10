@@ -13,9 +13,9 @@ tags: [AWS, DevOps]
 5. [AWS 리소스 세팅](/posts/aws-cicd-5)
 6. **CodeDeploy 연동 / 마무리**  
 
-# **CodeDeploy 연동 / 마무리**
+## **CodeDeploy 연동 / 마무리**
 
-## **S3 접근 IAM 사용자 생성**
+### **S3 접근 IAM 사용자 생성**
 무중단 배포의 흐름은 `코드 커밋 - 커밋 트리거로 github action 수행 - gradle 빌드 - jar 파일 s3 전송 - code deploy 트리거 - code deploy가 배포 수행` 으로 이루어 집니다.
 
 그 중 github action으로 빌드한 jar 파을 s3에 전송하려면 권한이 있어야 하겠죠? 권한을 가진 사용자를 만들어 보겠습니다.  IAM -> 사용자 생성으로 사용자 추가 화면으로 이동합니다.
@@ -29,11 +29,11 @@ tags: [AWS, DevOps]
 마지막 5단계에 도달하면 액세스 키와 비밀 액세스 키를 다운받을 수 있는 화면이 나타납니다. 이 자격 증명 csv는 해당 화면에서만 다운받을 수 있으니 잘 저장해 두도록 합니다.  
 ![deploy-ready-4](./deploy-ready-4.jpg)
 
-## **S3 버킷 생성**
+### **S3 버킷 생성**
 사용자를 생성하였으니 S3 버킷을 생성하겠습니다. AWS 콘솔 -> S3 -> 버킷 만들기 로 이동하여 버킷을 생성합니다. 이때 모든 퍼블릭 액세스를 차단합니다.  
 ![deploy-ready-5](./deploy-ready-5.jpg)
 
-## **Github Repository 생성 및 코드 commit & push**
+### **Github Repository 생성 및 코드 commit & push**
 간단한 Spring boot 어플리케이션을 만들어 Github에 올립니다.
 
 ```java
@@ -57,13 +57,13 @@ public class SimpleApplication {
 }
 ```
 
-## **Github Repository에 시크릿 키 등록**
+### **Github Repository에 시크릿 키 등록**
 Github Action에 시크릿 키를 그대로 노출시키면 보안상 큰 문제가 되겠죠? 따라서 Workflow에서 변수를 사용할 수 있도록 설정에 시크릿 키를 등록하도록 하겠습니다.
 
 ![deploy-ready-6](./deploy-ready-6.jpg)  
 위 캡쳐와 같이 repository -> settings -> 좌측 secrets -> actions 로 이동하며 IAM 사용자 생성 마지막 단계에서 저장해 두었던 키값들을 등록합니다.
 
-## **S3에 업로드하기**
+### **S3에 업로드하기**
 github workflow에서 s3로 빌드된 jar 파일을 옮기는 job을 추가합니다. .github/workflows/gradle.yml 파일을 만들고 아래 내용을 넣으면 됩니다.
 
 ```yml
@@ -124,7 +124,7 @@ run_number를 사용하지 않으면 action이 수행될때마다 새로운 파�
 ![deploy-ready-7](./deploy-ready-7.jpg)  
 ![deploy-ready-8](./deploy-ready-8.jpg)
 
-## **CodeDeploy 호출**  
+### **CodeDeploy 호출**  
 s3에 파일이 잘 업로드 되었으니 CodeDeploy를 호출해야 합니다. 스크립트를 수정하기 전 기존 AutoScaling Group에 포함된 인스턴스에 CodeDeploy Agent가 실행중인지 체크하세요.  
 ```
 sudo service codedeploy-agent status
@@ -208,7 +208,7 @@ aws 인증부분을 `Configure AWS Credentials`로 따로 뻈고, `Call CodeDepl
 
 `The CodeDeploy agent did not find an AppSpec file within the unpacked revision directory at revision-relative path "appspec.yml"` 라는 메시지가 뜨며 배포가 실패한다면 지금까지는 성공입니다.  
 
-## **appspec.yml 세팅**  
+### **appspec.yml 세팅**  
 CodeDeploy는 AppSpec file을 배포 관리 yaml 파일로 사용합니다. 이전에 만든 템플릿에는 codedeploy-agent 설치 까지만 진행했었는데요, nginx나 기타 필요한 세팅은 이곳에서 진행됩니다.  
 
 배포될 스프링 부트 프로젝트의 root에서 `codedeploy` 라는 폴더를 만들고 appspec.yml 파일을 생성하고 아래 내용을 붙여넣습니다.  
@@ -244,7 +244,7 @@ hooks:
 많은 훅들이 있지만 여기서 사용할 훅은 세가지 입니다. 그중 먼저 AfterInstall 훅에 사용될 스크립트를 정의해 보겠습니다.  
 
 
-##### **AfterInstall**  
+#### **AfterInstall**  
 appspec.yml 파일이 위치한 곳에 init.sh 파일을 생성합니다.  
 
 ```sh
@@ -308,7 +308,7 @@ server {
 
 이전 포스팅에서 로드밸랜서 / 대상그룹에 대해 알아본 적이 있습니다. 테스트 어플리케이션도 하나 만들었지요. 그때 `/health` 경로에 대해 200 상태값을 반환하도록 설정하였었는데요, 여기서도 동일합니다. 대상 그룹이 새로운 인스턴스의 health 상태를 체크하기 위해 사용됩니다.  
 
-##### **ApplicationStart**  
+#### **ApplicationStart**  
 인스턴스 세팅이 끝났으니 SpringBoot 어플리케이션을 실행하는 스크립트가 필요합니다. appspec.yml 파일이 위치한 곳에 deploy.yml 파일을 생성합니다.  
 
 ```sh
@@ -319,7 +319,7 @@ sleep 30s
 
 스프링부트의 포트와 nginx의 포트가 일치하는지 확인합니다.  
 
-##### **ValidateService**  
+#### **ValidateService**  
 혹시 스프링부트가 뜨지 않았다면 어떻게 할까요?(예를들어 하이버네이트의 스키마 검증...) 타겟그룹은 `현재인스턴스/health` 경로로 health-check 를 진행하였기 때문에 인스턴스 내부의 어플리케이션이 정상적으로 동작하는지 까지는 확인하지 않습니다. 따라서 여기서는 별도의 스크립트를 통해 어플리케이션이 잘 시작되었는지 확인하겠습니다.  
 
 일단 스프링부트 어플리케이션에 메소드를 추가해 보겠습니다. 단순히 200 상태값을 체크하는데 사용되는 메소드 입니다.  
@@ -360,7 +360,7 @@ validate "localhost:8090/script-health-check" "샘플"
 
 총 열번, 각 시도마다 10초의 유휴시간을 가지는 검증 스크립트 입니다. 검증에 실패한다면 exit1 코드를 통해 CodeDeploy 배포가 종료되게 됩니다.  
 
-##### **gradle.yml 최종수정**  
+#### **gradle.yml 최종수정**  
 필요한 스크립트들이 스프링부터 jar 파일과 같이 압축될수 있도록 yml 파일을 최종 수정합니다.
 
 ```yml
@@ -434,7 +434,7 @@ jobs:
 
 > Move CodeDeploy Script 부분이 추가되었습니다.
 
-## **결과 확인**  
+### **결과 확인**  
 이제 필요한 스크립트는 모두 작성되었습니다. Github에 push하여 결과를 확인합니다.  
 
 CodeDeploy 콘솔에서 작업이 성공적으로 끝난것을 확인하였다면 로드밸런서의 DNS 를 통해 사이트로 접속하여 결과물을 확인합니다. 결과를 확인하였다면 이제는 스프링부트 어플리케이션에 테스트 메소드를 추가하여 다시한번 CodeDeploy 배포를 수행해 보세요.  
@@ -448,7 +448,7 @@ CodeDeploy 를 확인하면서 수시로 사이트에 접속해 보세요. 이�
 ![deploy-ready-9](./deploy-ready-9.jpg)  
 _모든 TASK가 성공하였습니다!_
 
-# **마무리**  
+## **마무리**  
 이 시리즈에서는 VPC생성, 서브넷 생성부터 Github Action, CodeDeploy까지 진행해 보았습니다. 사실 실제 프로덕션 환경에서는 실경써줘야할 부분이 더 많습니다.  
 
 예를들어 CodeDeploy 배포에 실패한 경우 CodeDeploy 에 의해 새롭게 시작된 Auto Scaling Group은 자동종료되지 않기 때문에 새로운 인스턴스가 실행된 상태(아무것도 하지 않는 상태)로 멈추어 이중 과금이 발생합니다. 따라서 이에 대응할 전략이 필요합니다. 제 경우 CodeDeploy의 성공 / 실패 여부를 30초마다 Polling 하는 스크립트를 Jenkins에 포함시켜서 실패한 경우 미리 정의해둔 롤백 람다를 호출하는 방식을 사용하고 있습니다.  
