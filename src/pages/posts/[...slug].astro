@@ -7,6 +7,7 @@ import Toc from '../../components/Toc.astro';
 import PostEnhance from '../../components/PostEnhance.astro';
 import Lightbox from '../../components/Lightbox.astro';
 import { slugify } from '../../lib/slug';
+import { summarize } from '../../lib/summary';
 import { getPosts, buildSeries, related } from '../../lib/posts';
 import PostFooter from '../../components/PostFooter.astro';
 
@@ -28,21 +29,18 @@ export async function getStaticPaths() {
 const { post, series, related: relatedPosts } = Astro.props;
 const { Content, headings } = await render(post);
 
-// 공유했을 때 보일 요약 — 본문 첫 문단에서 뽑는다
-const summary = post.body
-  ?.replace(/^---[\s\S]*?---/, '')
-  .replace(/```[\s\S]*?```/g, '')
-  .replace(/!\[[^\]]*\]\([^)]*\)/g, '')
-  .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
-  .replace(/[#>*`_~]/g, '')
-  .split(/\r?\n/)
-  .map((l) => l.trim())
-  .find((l) => l.length > 30)
-  ?.slice(0, 150);
+// 공유했을 때 보일 요약 — 본문에서 뽑는다 (lib/summary.ts 가 소제목·목차 줄을 거른다)
+const summary = summarize(post.body, post.data.title);
 
 const ymd = full(post.data.date);
 ---
-<Base title={post.data.title} description={summary} published={post.data.date} tags={post.data.tags}>
+<Base
+  title={post.data.title}
+  description={summary}
+  published={post.data.date}
+  updated={post.data.updated}
+  tags={post.data.tags}
+>
   <article>
     <header class="head">
       <h1>{post.data.title}</h1>
