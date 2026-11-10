@@ -20,6 +20,13 @@ const posts = defineCollection({
     title: z.string(),
     author: z.string().optional(),
     date: z.coerce.date(),
+    // 글을 실제로 고쳤을 때만 손으로 적는다. git 의 마지막 커밋을 쓰면
+    // 오타 하나 고쳐도 「갱신됨」 이 찍혀 거짓이 된다 (실제로 제목 단계만
+    // 바꾼 23편이 전부 그날짜로 찍혔다).
+    // 화면에는 안 띄운다 — 날짜 한 줄은 무엇이 바뀌었는지 못 알려준다.
+    // 바뀐 내용은 본문 그 자리에 적고, 이 값은 검색 엔진에만 나간다
+    // (article:modified_time · JSON-LD dateModified).
+    updated: z.coerce.date().optional(),
     categories: z.array(z.string()).default([]),
     tags: z.array(z.string()).default([]),
     mermaid: z.boolean().optional(),
