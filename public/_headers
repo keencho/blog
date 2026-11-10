@@ -1,0 +1,12 @@
+# 서비스 워커는 절대 캐시하지 않는다.
+# 옛 Chirpy 워커를 지우는 파일이라, 브라우저가 옛 sw.js 를 캐시에서 꺼내 쓰면
+# 영영 안 지워진다.
+/sw.js
+  Cache-Control: no-cache, no-store, must-revalidate
+
+# 해시가 이름에 박힌 파일들은 영원히 캐시해도 된다
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/fonts/*
+  Cache-Control: public, max-age=31536000, immutable

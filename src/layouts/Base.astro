@@ -46,6 +46,34 @@ const themeVars = `:root{--accent:${SITE.accent.light};--measure:${SITE.measure}
         } catch (e) {}
       })();
     </script>
+
+    <script is:inline>
+      /* 옛 블로그(Jekyll · Chirpy)가 깔아둔 PWA 서비스 워커를 지운다.
+         그게 남아 있으면 새 사이트를 올려도 캐시에 있는 옛 index.html 이 나온다.
+         /sw.js 쪽에도 자폭하는 워커를 둬서 양쪽에서 막는다.
+         옛 방문자가 전부 한 번씩 다녀간 뒤(몇 달)에는 이 블록을 지워도 된다. */
+      (function () {
+        if (!('serviceWorker' in navigator)) return;
+        navigator.serviceWorker
+          .getRegistrations()
+          .then(function (rs) {
+            rs.forEach(function (r) {
+              r.unregister();
+            });
+          })
+          .catch(function () {});
+        if (window.caches) {
+          caches
+            .keys()
+            .then(function (ks) {
+              ks.forEach(function (k) {
+                if (k.indexOf('chirpy') === 0) caches.delete(k);
+              });
+            })
+            .catch(function () {});
+        }
+      })();
+    </script>
   </head>
   <body>
     <a class="skip" href="#main">본문으로</a>
