@@ -58,6 +58,10 @@ jobs:
         if: steps.diagrams.outputs.need_browser == 'true'
         run: npm run diagrams
 
+      # 글에 쓰인 글자만 담아 본문 글꼴을 굽는다 (3.2MB 조각 92개 → 157KB 하나)
+      - name: 글꼴 굽기
+        run: node scripts/fonts.mjs
+
       - run: npx astro build
       - run: npx pagefind --site dist
 

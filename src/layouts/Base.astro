@@ -27,6 +27,15 @@ const themeVars = `:root{--accent:${SITE.accent.light};--measure:${SITE.measure}
     <style set:html={themeVars}></style>
 
     <!-- 폰트는 직접 들고 있다. 바깥 CDN 에 매달리지 않는다 -->
+    {/* 본문 글꼴을 먼저 받는다. CSS 를 읽고 나서야 받으면 한 박자 늦는다.
+        파일은 scripts/fonts.mjs 가 글에 쓰인 글자만 담아 굽는다 */}
+    <link
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      href="/fonts/pretendard-subset.woff2"
+      crossorigin
+    />
     <link
       rel="preload"
       as="font"

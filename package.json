@@ -5,12 +5,13 @@
   "private": true,
   "scripts": {
     "dev": "node scripts/diagrams.mjs && astro dev",
-    "build": "node scripts/diagrams.mjs && astro build && pagefind --site dist",
+    "build": "node scripts/diagrams.mjs && node scripts/fonts.mjs && astro build && pagefind --site dist",
     "preview": "astro preview",
     "check": "astro check",
     "diagrams": "node scripts/diagrams.mjs",
     "og": "node scripts/og-image.mjs",
-    "favicon": "node scripts/favicon.mjs"
+    "favicon": "node scripts/favicon.mjs",
+    "fonts": "node scripts/fonts.mjs"
   },
   "dependencies": {
     "@astrojs/markdown-remark": "^7.3.6",
@@ -28,6 +29,7 @@
     "playwright": "^1.65.0",
     "rehype-mermaid": "^3.0.0",
     "sharp": "0.35.5",
+    "subset-font": "2.4.0",
     "unist-util-visit": "^5.2.0"
   }
 }
