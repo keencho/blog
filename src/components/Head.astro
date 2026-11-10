@@ -40,6 +40,17 @@ const isPost = Boolean(published);
 
 <link rel="alternate" type="application/rss+xml" title={SITE.title} href="/feed.xml" />
 
+{/* 탭 아이콘. SVG 를 아는 브라우저는 그것을, 모르면 .ico 를 쓴다.
+    파일은 `npm run favicon` 이 굽는다 */}
+<link rel="icon" href="/favicon.ico" sizes="32x32" />
+<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+<link rel="manifest" href="/site.webmanifest" />
+
+{/* 모바일 주소창 색. styles/tokens.css 의 --bg 와 같은 값이다 */}
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#fcfcfb" />
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#10171b" />
+
 {
   /* 측정 ID 가 없으면 스크립트 자체가 들어가지 않는다.
      개발 중 방문은 집계하지 않는다 */

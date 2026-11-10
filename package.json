@@ -9,7 +9,8 @@
     "preview": "astro preview",
     "check": "astro check",
     "diagrams": "node scripts/diagrams.mjs",
-    "og": "node scripts/og-image.mjs"
+    "og": "node scripts/og-image.mjs",
+    "favicon": "node scripts/favicon.mjs"
   },
   "dependencies": {
     "@astrojs/markdown-remark": "^7.3.6",
