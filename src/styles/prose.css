@@ -7,7 +7,7 @@
 .prose > * { margin-block: 0 1.15em; }
 .prose > :last-child { margin-bottom: 0; }
 
-.prose h2, .prose h3, .prose h4 {
+.prose h2, .prose h3, .prose h4, .prose h5 {
   line-height: 1.45;
   letter-spacing: -0.01em;
   margin-block: 2.4em 0.8em;
@@ -15,7 +15,15 @@
 .prose h2 { font-size: 1.32rem; font-weight: 700; }
 .prose h3 { font-size: 1.12rem; font-weight: 700; }
 .prose h4 { font-size: 1rem;    font-weight: 700; color: var(--ink-dim); }
+/* 네 단계까지 내려가는 글이 몇 편 있다. 더 줄이면 본문과 구분이 안 되니
+   크기는 거의 그대로 두고 색만 옅게 해서 h4 아래라는 걸 표시한다 */
+.prose h5 { font-size: 0.95rem; font-weight: 700; color: var(--ink-faint); margin-block: 2em 0.7em; }
 .prose > h2:first-child, .prose > h3:first-child { margin-top: 0; }
+
+/* 목차나 주소창 해시로 제목에 뛰어왔을 때 화면 꼭대기에 딱 붙지 않게 한다.
+   그냥 두면 top 0px 에 붙어 바로 윗 문단이 한 줄도 안 보인다.
+   제목 위 여백이 2.4em(약 54px) 이라 그 절반쯤을 남긴다 */
+.prose :is(h1, h2, h3, h4, h5) { scroll-margin-top: 2rem; }
 
 .prose p { margin-block: 0 1.15em; }
 

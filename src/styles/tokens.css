@@ -4,6 +4,7 @@
 :root {
   --bg:        #fcfcfb;
   --bg-sunk:   #f3f4f2;   /* 코드블록·인용 바탕 */
+  --bg-float:  #fcfcfb;   /* 본문 위에 떠 있는 것 (떠다니는 단추 등) */
   --ink:       #18242b;   /* 본문 */
   --ink-dim:   #5e6e78;   /* 날짜·메타 */
   --ink-faint: #93a1a8;   /* 더 연한 것 */
@@ -25,6 +26,7 @@
 :root[data-theme='dark'] {
   --bg:        #10171b;
   --bg-sunk:   #192228;
+  --bg-float:  #1e2a31;
   --ink:       #d8e1e4;
   --ink-dim:   #86959d;
   --ink-faint: #5d6c74;
@@ -37,6 +39,7 @@
   :root:not([data-theme='light']) {
     --bg:        #10171b;
     --bg-sunk:   #192228;
+    --bg-float:  #1e2a31;
     --ink:       #d8e1e4;
     --ink-dim:   #86959d;
     --ink-faint: #5d6c74;

@@ -3,7 +3,7 @@
 ---
 <style is:global>
   /* 제목 옆 링크 — 마우스를 올렸을 때만 보인다 */
-  .prose :is(h2, h3, h4) {
+  .prose :is(h2, h3, h4, h5) {
     position: relative;
   }
   .prose .anchor {
@@ -18,7 +18,7 @@
     font-weight: 400;
     transition: opacity 0.12s;
   }
-  .prose :is(h2, h3, h4):hover .anchor,
+  .prose :is(h2, h3, h4, h5):hover .anchor,
   .prose .anchor:focus-visible { opacity: 1; }
   .prose .anchor:hover { color: var(--accent); }
   @media (max-width: 46rem) {
@@ -100,7 +100,7 @@
   const prose = document.querySelector('.prose');
   if (prose) {
     // 제목 앵커
-    prose.querySelectorAll<HTMLElement>('h2[id], h3[id], h4[id]').forEach((h) => {
+    prose.querySelectorAll<HTMLElement>('h2[id], h3[id], h4[id], h5[id]').forEach((h) => {
       const a = document.createElement('a');
       a.className = 'anchor';
       a.href = `#${h.id}`;
