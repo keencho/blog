@@ -54,10 +54,11 @@ jobs:
       - run: npx astro build
       - run: npx pagefind --site dist
 
-      # 설정은 wrangler.jsonc 에 있다 (이름 · dist 경로)
+      # 설정은 wrangler.jsonc 에 있다 (이름 · dist 경로).
+      # wrangler-action 은 쓰지 않는다 — 제 버전(3.x)을 따로 깔아서
+      # main 없는 정적 배포를 못 알아본다. package.json 에 고정한 것을 쓴다
       - name: Cloudflare 로 올리기
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: deploy
+        run: npx wrangler deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

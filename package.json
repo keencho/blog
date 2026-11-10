@@ -26,6 +26,7 @@
     "pagefind": "^1.6.0",
     "playwright": "^1.65.0",
     "rehype-mermaid": "^3.0.0",
-    "unist-util-visit": "^5.2.0"
+    "unist-util-visit": "^5.2.0",
+    "wrangler": "4.159.0"
   }
 }
