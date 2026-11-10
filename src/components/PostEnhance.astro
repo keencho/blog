@@ -109,6 +109,22 @@
       h.prepend(a);
     });
 
+    // 표 — 좁은 화면에서 열이 짓눌리지 않게 최소 폭을 주고 옆으로 밀게 한다.
+    // 실측(360px): 손 안 대면 4열 표의 한 열이 43px 까지 좁아져 셀이 9줄로 쪼개진다.
+    prose.querySelectorAll<HTMLTableElement>('table').forEach((table) => {
+      const cols = table.rows[0]?.cells.length ?? 0;
+      if (!cols) return;
+
+      const wrap = document.createElement('div');
+      wrap.className = 'tablewrap';
+      table.parentNode?.insertBefore(wrap, table);
+      wrap.appendChild(table);
+
+      // 한 열에 한글 예닐곱 자는 들어가게. 열이 많을수록 넓어진다
+      const min = Math.min(Math.max(cols * 8.5, 26), 52);
+      table.style.minWidth = `${min}rem`;
+    });
+
     // 코드 복사
     prose.querySelectorAll<HTMLPreElement>('pre').forEach((pre) => {
       const wrap = document.createElement('div');

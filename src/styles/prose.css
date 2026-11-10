@@ -48,6 +48,27 @@
   margin-block: 2.6em;
 }
 
+/* 표는 좁은 화면에서 억지로 욱여넣지 않고 옆으로 민다.
+   그냥 두면 360px 에서 열 하나가 43px 까지 좁아져 한글이 두세 자씩 쌓인다.
+   감싸는 상자와 최소 폭은 PostEnhance 가 열 수를 보고 붙인다 */
+.prose .tablewrap {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  margin-block: 0 1.15em;
+  /* 밀 수 있다는 걸 알리는 오른쪽 그늘 */
+  background:
+    linear-gradient(to right, var(--bg) 30%, transparent),
+    linear-gradient(to left, var(--bg) 30%, transparent) right,
+    linear-gradient(to right, rgb(0 0 0 / 0.07), transparent 14px),
+    linear-gradient(to left, rgb(0 0 0 / 0.07), transparent 14px) right;
+  background-repeat: no-repeat;
+  background-size: 28px 100%, 28px 100%, 14px 100%, 14px 100%;
+  background-attachment: local, local, scroll, scroll;
+}
+.prose .tablewrap > table {
+  margin-block: 0;
+}
+
 .prose table {
   width: 100%;
   border-collapse: collapse;
