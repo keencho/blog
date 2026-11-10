@@ -8,9 +8,16 @@ on:
     types: [content-updated]
   workflow_dispatch:
 
+# GitHub Pages 로 올리는 데 필요한 권한
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 올리는 중에 또 올리지 않는다. 다만 진행 중인 배포는 끝까지 둔다
 concurrency:
-  group: deploy
-  cancel-in-progress: true
+  group: pages
+  cancel-in-progress: false
 
 jobs:
   build:
@@ -54,11 +61,20 @@ jobs:
       - run: npx astro build
       - run: npx pagefind --site dist
 
-      # 설정은 wrangler.jsonc 에 있다 (이름 · dist 경로).
-      # wrangler-action 은 쓰지 않는다 — 제 버전(3.x)을 따로 깔아서
-      # main 없는 정적 배포를 못 알아본다. package.json 에 고정한 것을 쓴다
-      - name: Cloudflare 로 올리기
-        run: npx wrangler deploy
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  # Cloudflare 가 아니라 GitHub Pages 로 올린다.
+  # 한국에서 Cloudflare 무료·Pro·Business 는 서울(ICN) 엣지를 못 쓰고
+  # 해외(LAX)로 돌아간다. 실측 TTFB 0.94초 → GitHub Pages 0.019초.
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

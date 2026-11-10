@@ -15,9 +15,22 @@ if (cfg.mermaid === 'build') {
   rehypePlugins.push(rehypeMermaidCached);
 }
 
+// 옛 Jekyll 블로그에 있던 주소들.
+// 예전에는 public/_redirects 로 처리했는데, 그건 Cloudflare·Netlify 전용이라
+// GitHub Pages 에서는 안 먹는다. 여기 적으면 Astro 가 정적 HTML 로 구워준다.
+const oldPaths: Record<string, string> = {
+  // 지난 글 — 새 홈이 이미 글 전부를 연도별로 보여준다
+  '/archives': '/',
+  // 옛 Chirpy 페이지네이션 — 새 목록은 한 페이지에 전부 있다
+  ...Object.fromEntries(
+    Array.from({ length: 8 }, (_, i) => [`/page${i + 2}`, '/'] as const),
+  ),
+};
+
 export default defineConfig({
   site: cfg.url,
   integrations: [mdx(), sitemap()],
+  redirects: oldPaths,
   markdown: {
     // Astro 7 의 기본 처리기(Sätteri)는 rehype 플러그인을 실행하지 않는다
     processor: unified({ rehypePlugins }),
