@@ -1,16 +1,48 @@
 ---
-// Pagefind 검색. 색인은 빌드가 끝난 뒤 `pagefind --site dist` 가 만든다.
+// 글 검색.
+//
+// Pagefind 가 주는 기본 UI(pagefind-ui) 는 쓰지 않는다. 제 색과 레이아웃을 들고 와서
+// 사이트와 따로 놀고, 높이 제한이 없어 결과가 화면 밖으로 흘러나간다.
+// 여기서는 검색 API 만 가져다 쓰고 화면은 직접 그린다.
+//
+// 색인은 빌드가 끝난 뒤 `pagefind --site dist` 가 만든다.
 // 그래서 개발 중에는 비어 있고, 빌드한 결과에서만 작동한다.
 ---
-<button type="button" class="searchbtn" aria-label="검색" data-search-open>
+
+<button type="button" class="searchbtn" aria-label="검색 (Ctrl+K)" data-search-open>
   <svg viewBox="0 0 20 20" width="15" height="15" aria-hidden="true">
     <circle cx="9" cy="9" r="5.2" fill="none" stroke="currentColor" stroke-width="1.5" />
     <path d="M13 13l4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
   </svg>
 </button>
 
-<dialog class="searchbox" data-search-dialog aria-label="글 검색">
-  <div id="pagefind" />
+<dialog class="sbox" data-search-dialog aria-label="글 검색">
+  <form class="sbar" data-search-form autocomplete="off">
+    <svg class="sicon" viewBox="0 0 20 20" width="16" height="16" aria-hidden="true">
+      <circle cx="9" cy="9" r="5.2" fill="none" stroke="currentColor" stroke-width="1.5" />
+      <path d="M13 13l4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+    </svg>
+    <input
+      type="search"
+      class="sinput"
+      data-search-input
+      placeholder="글 검색"
+      aria-label="검색어"
+      enterkeyhint="search"
+    />
+    <kbd class="skbd" data-search-esc>esc</kbd>
+  </form>
+
+  <div class="sbody" data-search-body>
+    <p class="shint">제목과 본문에서 찾습니다.</p>
+  </div>
+
+  <footer class="sfoot">
+    <span><kbd>↑</kbd><kbd>↓</kbd> 이동</span>
+    <span><kbd>↵</kbd> 열기</span>
+    <span><kbd>esc</kbd> 닫기</span>
+    <span class="scount" data-search-count></span>
+  </footer>
 </dialog>
 
 <style>
@@ -26,35 +58,191 @@
   }
   .searchbtn:hover { color: var(--ink); }
 
-  .searchbox {
-    width: min(42rem, calc(100vw - 2rem));
-    margin: 8vh auto auto;
+  /* ── 상자 ─────────────────────────────────── */
+  .sbox {
+    /* 밝을 때는 본문과 같은 종이색이어도 백드롭 덕에 떠 보인다.
+       어두울 때는 그림자가 안 보여서 본문에 묻히므로 한 단계 띄운다 */
+    --s-bg: var(--bg);
+    --s-line: var(--rule);
+    --s-hover: var(--bg-sunk);
+    --s-foot: var(--bg-sunk);
+
+    width: min(38rem, calc(100vw - 2rem));
+    max-height: min(32rem, calc(100vh - 8rem));
+    margin: 7vh auto auto;
     padding: 0;
-    border: 1px solid var(--rule);
+    border: 1px solid var(--s-line);
     border-radius: 10px;
-    background: var(--bg);
+    background: var(--s-bg);
     color: var(--ink);
-    box-shadow: 0 16px 48px rgb(0 0 0 / 0.18);
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.08), 0 12px 38px rgb(0 0 0 / 0.16);
+    overflow: hidden;
   }
-  .searchbox::backdrop { background: rgb(0 0 0 / 0.42); }
-  #pagefind { padding: 0.9rem; }
+
+  :global(:root[data-theme='dark']) .sbox {
+    --s-bg: #1a242c;
+    --s-line: #2e3c46;
+    --s-hover: #253240;
+    --s-foot: #141d23;
+  }
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme='light'])) .sbox {
+      --s-bg: #1a242c;
+      --s-line: #2e3c46;
+      --s-hover: #253240;
+      --s-foot: #141d23;
+    }
+  }
+  .sbox[open] {
+    display: flex;
+    flex-direction: column;
+  }
+  .sbox::backdrop {
+    background: rgb(12 18 22 / 0.38);
+    backdrop-filter: blur(1.5px);
+  }
+
+  /* ── 입력줄 ───────────────────────────────── */
+  .sbar {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.75rem 0.9rem;
+    border-bottom: 1px solid var(--s-line);
+    flex: none;
+  }
+  .sicon { color: var(--ink-faint); flex: none; }
+  .sinput {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    font-size: 0.98rem;
+    color: var(--ink);
+    padding: 0;
+  }
+  .sinput:focus { outline: none; }
+  .sinput::placeholder { color: var(--ink-faint); }
+  .sinput::-webkit-search-cancel-button { display: none; }
+
+  .skbd {
+    flex: none;
+    font: inherit;
+    font-size: 0.68rem;
+    font-family: var(--font-sans);
+    color: var(--ink-faint);
+    border: 1px solid var(--s-line);
+    border-radius: 4px;
+    padding: 0.1rem 0.34rem;
+    cursor: pointer;
+    background: none;
+  }
+  .skbd:hover { color: var(--ink-dim); border-color: var(--ink-faint); }
+
+  /* ── 결과 ─────────────────────────────────── */
+  .sbody {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    flex: 1;
+    min-height: 0;
+    padding: 0.35rem 0;
+  }
+  .shint,
+  .sempty {
+    margin: 0;
+    padding: 1.6rem 1rem;
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--ink-faint);
+  }
+  .sempty strong { color: var(--ink-dim); font-weight: 600; }
+
+  .sfoot {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 0.5rem 0.9rem;
+    border-top: 1px solid var(--s-line);
+    background: var(--s-foot);
+    font-size: 0.7rem;
+    color: var(--ink-faint);
+    flex: none;
+  }
+  .sfoot kbd {
+    font-family: var(--font-sans);
+    font-size: 0.68rem;
+    border: 1px solid var(--s-line);
+    border-radius: 3px;
+    padding: 0 0.26rem;
+    margin-right: 0.18rem;
+    background: var(--s-bg);
+  }
+  .scount { margin-left: auto; }
+
+  @media (max-width: 34rem) {
+    .sbox { margin-top: 3vh; max-height: calc(100vh - 5rem); }
+    .sfoot span:not(.scount) { display: none; }
+  }
 </style>
 
 <style is:global>
-  /* Pagefind 기본 모양을 사이트 색에 맞춘다 */
-  :root {
-    --pagefind-ui-scale: 0.82;
-    --pagefind-ui-primary: var(--ink);
-    --pagefind-ui-text: var(--ink);
-    --pagefind-ui-background: var(--bg);
-    --pagefind-ui-border: var(--rule);
-    --pagefind-ui-tag: var(--bg-sunk);
-    --pagefind-ui-border-width: 1px;
-    --pagefind-ui-border-radius: 6px;
-    --pagefind-ui-font: var(--font-sans);
+  /* 결과 한 건 */
+  .sitem {
+    display: block;
+    padding: 0.62rem 0.95rem;
+    text-decoration: none;
+    color: inherit;
+    border-left: 2px solid transparent;
   }
-  .pagefind-ui__result-title a { color: var(--ink) !important; }
-  .pagefind-ui__result-excerpt mark {
+  .sitem:hover,
+  .sitem[data-on] {
+    background: var(--s-hover);
+    border-left-color: var(--accent);
+  }
+  .sitem-t {
+    font-size: 0.92rem;
+    font-weight: 600;
+    line-height: 1.45;
+    word-break: keep-all;
+  }
+  .sitem-x {
+    margin-top: 0.15rem;
+    font-size: 0.79rem;
+    line-height: 1.6;
+    color: var(--ink-dim);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    word-break: keep-all;
+  }
+  /* 소제목 단위 결과 */
+  .ssub {
+    display: block;
+    padding: 0.34rem 0.95rem 0.34rem 1.9rem;
+    text-decoration: none;
+    color: inherit;
+    border-left: 2px solid transparent;
+    font-size: 0.8rem;
+  }
+  .ssub:hover,
+  .ssub[data-on] {
+    background: var(--s-hover);
+    border-left-color: var(--accent);
+  }
+  .ssub-t {
+    color: var(--ink-dim);
+    font-weight: 500;
+  }
+  .ssub-t::before {
+    content: '↳';
+    color: var(--ink-faint);
+    margin-right: 0.35rem;
+  }
+  /* 찾은 낱말 — 배경을 깔지 않고 색과 굵기로만 표시한다 */
+  .sbody mark {
     background: none;
     color: var(--accent);
     font-weight: 600;
@@ -64,69 +252,159 @@
 <script>
   const dialog = document.querySelector<HTMLDialogElement>('[data-search-dialog]');
   const openBtn = document.querySelector('[data-search-open]');
-  let loaded = false;
+  const form = document.querySelector<HTMLFormElement>('[data-search-form]');
+  const input = document.querySelector<HTMLInputElement>('[data-search-input]');
+  const body = document.querySelector<HTMLElement>('[data-search-body]');
+  const count = document.querySelector<HTMLElement>('[data-search-count]');
+  const escBtn = document.querySelector('[data-search-esc]');
 
-  const open = async () => {
+  const MAX = 12;
+  let pagefind: any = null;
+  let loading: Promise<any> | null = null;
+  let token = 0;
+
+  const esc = (s: string) =>
+    s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+  /** Pagefind 가 준 발췌에는 <mark> 만 들어 있다. 그것만 남기고 나머지는 글자로 */
+  const safe = (html: string) =>
+    esc(html).replace(/&lt;(\/?)mark&gt;/g, '<$1mark>');
+
+  async function load() {
+    if (pagefind) return pagefind;
+    if (!loading) {
+      loading = import(/* @vite-ignore */ '/pagefind/pagefind.js')
+        .then(async (m: any) => {
+          await m.options({ excerptLength: 24 });
+          pagefind = m;
+          return m;
+        })
+        .catch(() => null);
+    }
+    return loading;
+  }
+
+  function show(html: string) {
+    if (body) body.innerHTML = html;
+  }
+
+  function render(results: any[], q: string, total: number) {
+    if (!results.length) {
+      show(
+        `<p class="sempty"><strong>${esc(q)}</strong> 에 대한 결과가 없습니다.</p>`,
+      );
+      if (count) count.textContent = '';
+      return;
+    }
+    const html = results
+      .map((r) => {
+        const title = esc(r.meta?.title ?? r.url);
+        const subs = (r.sub_results ?? [])
+          .filter((s: any) => s.title !== r.meta?.title)
+          .slice(0, 3)
+          .map(
+            (s: any) =>
+              `<a class="ssub" href="${esc(s.url)}"><span class="ssub-t">${esc(s.title)}</span></a>`,
+          )
+          .join('');
+        return (
+          `<a class="sitem" href="${esc(r.url)}">` +
+          `<div class="sitem-t">${title}</div>` +
+          `<div class="sitem-x">${safe(r.excerpt ?? '')}</div>` +
+          `</a>${subs}`
+        );
+      })
+      .join('');
+    show(html);
+    if (count) {
+      count.textContent = total > results.length ? `${results.length} / ${total}건` : `${total}건`;
+    }
+  }
+
+  async function run(q: string) {
+    const mine = ++token;
+    if (!q.trim()) {
+      show('<p class="shint">제목과 본문에서 찾습니다.</p>');
+      if (count) count.textContent = '';
+      return;
+    }
+
+    const pf = await load();
+    if (mine !== token) return;
+    if (!pf) {
+      show('<p class="sempty">검색은 빌드한 사이트에서만 됩니다 (<code>npm run build</code>).</p>');
+      return;
+    }
+
+    const search = await pf.debouncedSearch(q, {}, 140);
+    // 더 최근 입력이 들어오면 null 을 준다
+    if (search === null || mine !== token) return;
+
+    const results = await Promise.all(
+      search.results.slice(0, MAX).map((r: any) => r.data()),
+    );
+    if (mine !== token) return;
+    render(results, q, search.results.length);
+  }
+
+  /* ── 키보드로 결과 고르기 ───────────────────── */
+  function items(): HTMLAnchorElement[] {
+    return body ? [...body.querySelectorAll<HTMLAnchorElement>('.sitem, .ssub')] : [];
+  }
+  function move(step: number) {
+    const list = items();
+    if (!list.length) return;
+    const cur = list.findIndex((el) => el.hasAttribute('data-on'));
+    const next = cur < 0 ? (step > 0 ? 0 : list.length - 1) : (cur + step + list.length) % list.length;
+    list.forEach((el) => el.removeAttribute('data-on'));
+    list[next].setAttribute('data-on', '');
+    list[next].scrollIntoView({ block: 'nearest' });
+  }
+
+  function open() {
     if (!dialog) return;
     dialog.showModal();
-    if (loaded) return;
-    loaded = true;
-    try {
-      // 이 둘은 빌드가 끝난 뒤 pagefind 가 만든다.
-      // ESM 이 아니라 전역(window.PagefindUI)에 붙는 스크립트다
-      await new Promise<void>((resolve, reject) => {
-        const css = document.createElement('link');
-        css.rel = 'stylesheet';
-        css.href = '/pagefind/pagefind-ui.css';
-        document.head.appendChild(css);
-
-        const js = document.createElement('script');
-        js.src = '/pagefind/pagefind-ui.js';
-        js.onload = () => resolve();
-        js.onerror = () => reject(new Error('pagefind 없음'));
-        document.head.appendChild(js);
-      });
-
-      const PagefindUI = (window as any).PagefindUI;
-      if (!PagefindUI) throw new Error('pagefind 없음');
-
-      new PagefindUI({
-        element: '#pagefind',
-        showSubResults: true,
-        showImages: false,
-        resetStyles: false,
-        translations: {
-          placeholder: '글 검색',
-          clear_search: '지우기',
-          load_more: '더 보기',
-          search_label: '글 검색',
-          zero_results: '[SEARCH_TERM] 에 대한 결과가 없습니다',
-          many_results: '[SEARCH_TERM] — [COUNT] 건',
-          one_result: '[SEARCH_TERM] — 1건',
-          searching: '[SEARCH_TERM] 찾는 중…',
-        },
-      });
-      setTimeout(() => dialog.querySelector('input')?.focus(), 60);
-    } catch {
-      const box = dialog.querySelector('#pagefind');
-      if (box) {
-        box.textContent = '검색은 빌드한 사이트에서만 됩니다 (npm run build).';
-        (box as HTMLElement).style.color = 'var(--ink-dim)';
-        (box as HTMLElement).style.fontSize = '0.9rem';
-      }
-    }
-  };
+    load();
+    setTimeout(() => input?.focus(), 40);
+  }
+  function close() {
+    dialog?.close();
+  }
 
   openBtn?.addEventListener('click', open);
-  dialog?.addEventListener('click', (e) => {
-    if (e.target === dialog) dialog.close();
+  escBtn?.addEventListener('click', close);
+  form?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const on = body?.querySelector<HTMLAnchorElement>('[data-on]') ?? items()[0];
+    if (on) location.href = on.href;
   });
 
-  // Cmd/Ctrl + K 로도 연다
+  input?.addEventListener('input', () => run(input.value));
+
+  dialog?.addEventListener('click', (e) => {
+    if (e.target === dialog) close();
+  });
+  dialog?.addEventListener('close', () => {
+    if (input) input.value = '';
+    token++;
+    show('<p class="shint">제목과 본문에서 찾습니다.</p>');
+    if (count) count.textContent = '';
+  });
+
+  dialog?.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowDown') { e.preventDefault(); move(1); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); move(-1); }
+  });
+
+  // Cmd/Ctrl + K · 그리고 / 로도 연다
   document.addEventListener('keydown', (e) => {
+    const typing = /^(INPUT|TEXTAREA|SELECT)$/.test((e.target as HTMLElement)?.tagName ?? '');
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
       e.preventDefault();
-      dialog?.open ? dialog.close() : open();
+      dialog?.open ? close() : open();
+    } else if (e.key === '/' && !typing && !dialog?.open) {
+      e.preventDefault();
+      open();
     }
   });
 </script>
